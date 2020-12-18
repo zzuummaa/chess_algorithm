@@ -17,7 +17,7 @@ pub struct PointArrayNode {
 impl PointArrayNode {
     pub fn new() -> Self {
         PointArrayNode {
-            point: Point::new(),
+            point: Point::default(),
             is_present: false,
         }
     }
@@ -32,7 +32,7 @@ pub struct PointLinkedNode {
 impl PointLinkedNode {
     pub fn new() -> Self {
         PointLinkedNode {
-            point: Point::new(),
+            point: Point::default(),
             next: ptr::null_mut()
         }
     }
@@ -58,13 +58,13 @@ impl Iterator for PointLinkedNodeIterator {
 }
 
 pub struct FigureList {
-    pub buffer: [PointLinkedNode; 18],
+    pub buffer: [PointLinkedNode; 16],
     first: *mut PointLinkedNode,
 }
 
 impl FigureList {
     pub fn new() -> Self {
-        FigureList { buffer: [PointLinkedNode::new(); 18], first: ptr::null_mut() }
+        FigureList { buffer: [PointLinkedNode::new(); 16], first: ptr::null_mut() }
     }
 
     pub fn fill(&mut self, board: &mut ByteBoard, color: Color) {

@@ -1,11 +1,20 @@
-#[derive(Copy, Clone, Debug)]
+
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Point {
-    pub x: u8,
-    pub y: u8,
+    x: u8,
+    y: u8,
 }
 
 impl Point {
-    pub fn new() -> Self {
-        Point { x: 0, y: 0 }
+    pub fn new(x: u8, y: u8) -> Point {
+        Point { x, y }
+    }
+
+    pub(crate) fn x(&self) -> u8 {
+        self.x
+    }
+
+    pub(crate) fn y(&self) -> u8 {
+        self.y
     }
 }

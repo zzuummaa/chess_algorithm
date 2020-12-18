@@ -59,7 +59,7 @@ impl ByteBoard {
     }
 
     pub fn point(&self, point: Point) -> Figure {
-        self.cells[point.x as usize][point.y as usize]
+        self.cells[point.x() as usize][point.y() as usize]
     }
 
     pub fn cell_iter(&self) -> impl Iterator<Item = (Point, &Figure)> {
@@ -68,7 +68,7 @@ impl ByteBoard {
             .flat_map(|(x, row)| {
                 row.iter()
                     .enumerate()
-                    .map(move |(y, column)| (Point { x: x as u8, y: y as u8}, column))
+                    .map(move |(y, column)| (Point::new(x as u8, y as u8), column))
             })
     }
 }
