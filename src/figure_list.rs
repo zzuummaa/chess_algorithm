@@ -44,14 +44,14 @@ pub struct PointLinkedNodeIterator {
 }
 
 impl Iterator for PointLinkedNodeIterator {
-    type Item = PointLinkedNode;
+    type Item = Point;
 
     fn next(&mut self) -> Option<Self::Item> {
         match unsafe { self.cur.as_ref() } {
             None => None,
             Some(e) => {
                 self.cur = e.next;
-                Some(*e)
+                Some(e.point)
             }
         }
     }

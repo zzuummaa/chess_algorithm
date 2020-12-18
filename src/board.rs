@@ -2,7 +2,6 @@
 
 use crate::point::*;
 use crate::figure::*;
-use crate::figure_list::*;
 use std::fmt;
 use std::fmt::{Display, Formatter, Debug};
 
@@ -12,17 +11,12 @@ pub struct ByteBoard {
     /// Second index is number
     /// Example: A2 -> cells[0][1]
     cells: [[Figure; 16]; 16],
-
-    pub white_list: FigureList,
-    pub black_list: FigureList,
 }
 
 impl ByteBoard {
     pub fn new() -> Self {
         let mut board = ByteBoard {
             cells: [[Figure::new(Rank::OUT, Color::NONE); 16]; 16],
-            white_list: FigureList::new(),
-            black_list: FigureList::new()
         };
 
         for i in 0..8 {

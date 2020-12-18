@@ -12,8 +12,8 @@ fn test_fill_is_descending_sort() {
     let mut list = FigureList::new();
     list.fill(&mut board, Color::WHITE);
     assert!(list.iter().is_sorted_by(|a, b| {
-        let pa = board.point(a.point);
-        let pb = board.point(b.point);
+        let pa = board.point(*a);
+        let pb = board.point(*b);
         Some(pb.weight().cmp(&pa.weight()))
     }));
 }
