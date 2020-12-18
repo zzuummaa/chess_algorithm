@@ -13,6 +13,7 @@ pub enum Rank {
     BISHOP,
     KNIGHT,
     PAWN,
+    OUT
 }
 
 pub const W_PAWN: i32 = 1000;
@@ -83,6 +84,7 @@ impl Display for Figure {
             Rank::BISHOP => 'b',
             Rank::KNIGHT => 'k',
             Rank::PAWN => 'p',
+            Rank::OUT => 'x'
         };
         write!(f, "{}{}", color, rank)
     }
