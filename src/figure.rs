@@ -16,8 +16,8 @@ pub enum Rank {
 }
 
 pub const W_PAWN: i32 = 1000;
-pub const W_BISHOP: i32 = 3 * W_PAWN;
-pub const W_KNIGHT: i32 = W_BISHOP;
+pub const W_BISHOP: i32 = 4 * W_PAWN;
+pub const W_KNIGHT: i32 = 3 * W_PAWN;
 pub const W_ROOK: i32 = 5 * W_PAWN;
 pub const W_QUEEN: i32 = 9 * W_PAWN;
 pub const W_INFINITY: i32 = 10 * W_QUEEN;

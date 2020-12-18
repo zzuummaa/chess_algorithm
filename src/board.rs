@@ -1,8 +1,10 @@
 #![allow(dead_code)]
 
+use crate::point::*;
 use crate::figure::*;
+use crate::figure_list::*;
 use std::fmt;
-use std::fmt::{Display, Formatter};
+use std::fmt::{Display, Formatter, Debug};
 
 #[derive(Debug)]
 pub struct ByteBoard {
@@ -10,12 +12,17 @@ pub struct ByteBoard {
     /// Second index is number
     /// Example: A2 -> cells[0][1]
     cells: [[Figure; 8]; 8],
+
+    pub white_list: FigureList,
+    pub black_list: FigureList,
 }
 
 impl ByteBoard {
-    pub fn new() -> ByteBoard {
+    pub fn new() -> Self {
         let mut board = ByteBoard {
             cells: [[Figure::new(Rank::NONE, Color::NONE); 8]; 8],
+            white_list: FigureList::new(),
+            black_list: FigureList::new()
         };
 
         for i in 0..8 {
@@ -45,6 +52,24 @@ impl ByteBoard {
         board.cells[4][7] = Figure::new(Rank::KING, Color::BLACK);
 
         board
+    }
+
+    pub fn cell(&self, literal: usize, number: usize) -> Figure {
+        self.cells[literal][number]
+    }
+
+    pub fn point(&self, point: Point) -> Figure {
+        self.cells[point.x as usize][point.y as usize]
+    }
+
+    pub fn cell_iter(&self) -> impl Iterator<Item = (Point, &Figure)> {
+        self.cells.iter()
+            .enumerate()
+            .flat_map(|(x, row)| {
+                row.iter()
+                    .enumerate()
+                    .map(move |(y, column)| (Point { x: x as u8, y: y as u8}, column))
+            })
     }
 }
 

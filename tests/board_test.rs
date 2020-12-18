@@ -3,5 +3,6 @@ use chess_algorithm::board::*;
 
 #[test]
 fn test_print_board() {
-    println!("{}", ByteBoard::new())
+    let board = ByteBoard::new();
+    println!("{}", board)
 }
