@@ -52,6 +52,12 @@ static KING_MOVES_Y: [i8; 8] = [ 1, 0, 1, -1, 0, -1, 1, -1 ];
 static KNIGHT_MOVES_X: [i8; 8] = [ 1, 2, -1, 2, 1, -2, -1, -2];
 static KNIGHT_MOVES_Y: [i8; 8] = [ 2, 1, 2, -1, -2, 1, -2, -1];
 
+static ROOK_DIRECTIONS_X: [i8; 4] = [ 0, 1, -1, 0 ];
+static ROOK_DIRECTIONS_Y: [i8; 4] = [ 1, 0, 0, -1 ];
+
+static BISHOP_DIRECTIONS_X: [i8; 4] = [ 1, -1, 1, -1 ];
+static BISHOP_DIRECTIONS_Y: [i8; 4] = [ 1, 1, -1, -1 ];
+
 impl<'a> MoveGenerator<'a> {
     pub fn generate(&self, move_list: &mut MoveList) {
         move_list.clear();
@@ -66,13 +72,38 @@ impl<'a> MoveGenerator<'a> {
             Rank::KING => {
                 self.generate_moves(p, &KING_MOVES_X, &KING_MOVES_Y, move_list);
             }
-            Rank::QUEEN => {}
-            Rank::ROOK => {}
-            Rank::BISHOP => {}
+            Rank::QUEEN => {
+                self.generate_directions_moves(p, &ROOK_DIRECTIONS_X, &ROOK_DIRECTIONS_Y, move_list);
+                self.generate_directions_moves(p, &BISHOP_DIRECTIONS_X, &BISHOP_DIRECTIONS_Y, move_list);
+            }
+            Rank::ROOK => {
+                self.generate_directions_moves(p, &ROOK_DIRECTIONS_X, &ROOK_DIRECTIONS_Y, move_list);
+            }
+            Rank::BISHOP => {
+                self.generate_directions_moves(p, &BISHOP_DIRECTIONS_X, &BISHOP_DIRECTIONS_Y, move_list);
+            }
             Rank::KNIGHT => {
                 self.generate_moves(p, &KNIGHT_MOVES_X, &KNIGHT_MOVES_X, move_list);
             }
-            Rank::PAWN => {}
+            Rank::PAWN => {
+                let mult = match f.color() {
+                    Color::NONE => unreachable!(),
+                    Color::WHITE => 1i8,
+                    Color::BLACK => -1i8
+                };
+
+                let eat_p = p + Point::new(1, mult * 1);
+                if self.board.point(eat_p).color() == Color::BLACK { move_list.push(Move { from: p, to: eat_p }) }
+
+                let eat_p = p + Point::new(-1, mult * 1);
+                if self.board.point(eat_p).color() == Color::BLACK { move_list.push(Move { from: p, to: eat_p }) }
+
+                self.move_if_not_out(p, 0, mult * 1);
+
+                if p.y() == 1i8 && mult == 1 || p.y() == 6i8 && mult == -1 {
+                    move_list.push(Move { from: p, to: p + Point::new(0, mult * 2) })
+                }
+            }
             Rank::NONE => unreachable!(),
             Rank::OUT => unreachable!()
         }
@@ -92,5 +123,22 @@ impl<'a> MoveGenerator<'a> {
             .zip(movies_y.iter())
             .filter_map(|dp| self.move_if_not_out(p, *dp.0, *dp.1))
             .for_each(|to_p| move_list.push(Move { from: p, to: to_p}) );
+    }
+
+    fn generate_directions_moves(&self, p: Point, directions_x: &[i8; 4], directions_y: &[i8; 4], move_list: &mut MoveList) {
+        directions_x.iter()
+            .zip(directions_y.iter())
+            .for_each(|d| {
+                let mut to_p = p;
+                loop {
+                    match self.move_if_not_out(to_p, *d.0, *d.1) {
+                        None => break,
+                        Some(new_to_p) => {
+                            move_list.push(Move { from: p, to: new_to_p });
+                            to_p = new_to_p
+                        }
+                    }
+                }
+            });
     }
 }
