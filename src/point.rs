@@ -1,20 +1,32 @@
+use std::ops::Add;
 
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Point {
-    x: u8,
-    y: u8,
+    x: i8,
+    y: i8,
 }
 
 impl Point {
-    pub fn new(x: u8, y: u8) -> Point {
+    pub fn new(x: i8, y: i8) -> Point {
         Point { x, y }
     }
 
-    pub(crate) fn x(&self) -> u8 {
+    pub fn x(&self) -> i8 {
         self.x
     }
 
-    pub(crate) fn y(&self) -> u8 {
+    pub fn y(&self) -> i8 {
         self.y
+    }
+}
+
+impl Add for Point {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Self {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
     }
 }

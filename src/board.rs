@@ -76,7 +76,7 @@ impl ByteBoard {
             .flat_map(|(x, row)| {
                 row[4..12].iter()
                     .enumerate()
-                    .map(move |(y, column)| (Point::new(x as u8, y as u8), column))
+                    .map(move |(y, column)| (Point::new(x as i8, y as i8), column))
             })
     }
 }
