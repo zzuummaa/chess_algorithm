@@ -25,6 +25,10 @@ impl MoveList {
         self.len += 1
     }
 
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
     pub fn clear(&mut self) {
         self.len = 0
     }
@@ -59,6 +63,10 @@ static BISHOP_DIRECTIONS_X: [i8; 4] = [ 1, -1, 1, -1 ];
 static BISHOP_DIRECTIONS_Y: [i8; 4] = [ 1, 1, -1, -1 ];
 
 impl<'a> MoveGenerator<'a> {
+    pub fn new(board: &'a ByteBoard, figures: &'a FigureList, color: Color) -> Self {
+        MoveGenerator { board, figures, color }
+    }
+
     pub fn generate(&self, move_list: &mut MoveList) {
         move_list.clear();
         self.figures.iter().for_each(|p| {

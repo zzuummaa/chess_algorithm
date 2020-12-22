@@ -14,13 +14,55 @@ pub struct ByteBoard {
 }
 
 impl ByteBoard {
-    pub fn new() -> Self {
+    pub fn empty() -> Self {
         let mut board = ByteBoard {
             cells: [[Figure::new(Rank::OUT, Color::NONE); 16]; 16],
         };
 
         for i in 0..8 {
-            for j in 1..7 {
+            for j in 0..8 {
+                *board.cell_mut(i, j) = Figure::new(Rank::NONE, Color::NONE);
+            }
+        }
+
+        board
+    }
+
+    pub fn cell_mut(&mut self, literal: usize, number: usize) -> &mut Figure {
+        &mut self.cells[literal + 4][number + 4]
+    }
+
+    pub fn cell(&self, literal: usize, number: usize) -> &Figure {
+        &self.cells[literal + 4][number + 4]
+    }
+
+    pub fn point(&self, point: Point) -> &Figure {
+        self.cell(point.x() as usize, point.y() as usize)
+    }
+
+    pub fn point_mut(&mut self, point: Point) -> &mut Figure {
+        self.cell_mut(point.x() as usize, point.y() as usize)
+    }
+
+    pub fn cell_iter(&self) -> impl Iterator<Item = (Point, &Figure)> {
+        self.cells[4..12].iter()
+            .enumerate()
+            .flat_map(|(x, row)| {
+                row[4..12].iter()
+                    .enumerate()
+                    .map(move |(y, column)| (Point::new(x as i8, y as i8), column))
+            })
+    }
+}
+
+impl Default for ByteBoard {
+    fn default() -> Self {
+        let mut board = ByteBoard {
+            cells: [[Figure::new(Rank::OUT, Color::NONE); 16]; 16],
+        };
+
+        for i in 0..8 {
+            for j in 2..6 {
                 *board.cell_mut(i, j) = Figure::new(Rank::NONE, Color::NONE);
             }
         }
@@ -52,32 +94,6 @@ impl ByteBoard {
         *board.cell_mut(4, 7) = Figure::new(Rank::KING, Color::BLACK);
 
         board
-    }
-
-    pub fn cell_mut(&mut self, literal: usize, number: usize) -> &mut Figure {
-        &mut self.cells[literal + 4][number + 4]
-    }
-
-    pub fn cell(&self, literal: usize, number: usize) -> &Figure {
-        &self.cells[literal + 4][number + 4]
-    }
-
-    pub fn point(&self, point: Point) -> &Figure {
-        self.cell(point.x() as usize, point.y() as usize)
-    }
-
-    pub fn point_mut(&mut self, point: Point) -> &mut Figure {
-        self.cell_mut(point.x() as usize, point.y() as usize)
-    }
-
-    pub fn cell_iter(&self) -> impl Iterator<Item = (Point, &Figure)> {
-        self.cells[4..12].iter()
-            .enumerate()
-            .flat_map(|(x, row)| {
-                row[4..12].iter()
-                    .enumerate()
-                    .map(move |(y, column)| (Point::new(x as i8, y as i8), column))
-            })
     }
 }
 

@@ -67,7 +67,7 @@ impl FigureList {
         FigureList { buffer: [PointLinkedNode::new(); 16], first: ptr::null_mut() }
     }
 
-    pub fn fill(&mut self, board: &mut ByteBoard, color: Color) {
+    pub fn fill(&mut self, board: &ByteBoard, color: Color) {
         let mut counter = 0;
         board.cell_iter().for_each(|(p, f)| {
             if f.color() == color {
