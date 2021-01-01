@@ -32,12 +32,12 @@ impl ByteBoard {
         &mut self.cells[literal + 4][number + 4]
     }
 
-    pub fn cell(&self, literal: usize, number: usize) -> &Figure {
-        &self.cells[literal + 4][number + 4]
+    pub fn cell(&self, literal: isize, number: isize) -> &Figure {
+        &self.cells[(literal + 4) as usize][(number + 4) as usize]
     }
 
     pub fn point(&self, point: Point) -> &Figure {
-        self.cell(point.x() as usize, point.y() as usize)
+        self.cell(point.x() as isize, point.y() as isize)
     }
 
     pub fn point_mut(&mut self, point: Point) -> &mut Figure {
@@ -99,7 +99,7 @@ impl Default for ByteBoard {
 
 impl Display for ByteBoard {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let (s, e) = (0usize, 8usize);
+        let (s, e) = (0isize, 8isize);
         for n in (s..e).rev() {
             write!(f, "{} ", n + 1)?;
             for l in s..e {
