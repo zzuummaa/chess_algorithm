@@ -2,7 +2,7 @@ extern crate chess_algorithm;
 use chess_algorithm::movement::*;
 use chess_algorithm::board::ByteBoard;
 use chess_algorithm::figure::Figure;
-use chess_algorithm::figure::Rank::{KING, PAWN};
+use chess_algorithm::figure::Rank::{KING, PAWN, QUEEN, ROOK};
 use chess_algorithm::figure::Color::{WHITE, BLACK};
 use chess_algorithm::figure_list::FigureList;
 use std::collections::HashSet;
@@ -91,4 +91,44 @@ fn test_generate_king_movies_with_friend_figure() {
     let movies: HashSet<Point> = data_holder.generate_figure_movies(0, 0).iter().map(|m| m.to).collect();
 
     assert_eq!(movies, expected_movies);
+}
+
+#[test]
+fn test_rook_movies() {
+    let mut expected_movies = HashSet::new();
+
+    for y in 0..8 {
+        if y == 1 { continue; }
+        expected_movies.insert(Point::new(1, y));
+    }
+    for x in 0..8 {
+        if x == 1 { continue; }
+        expected_movies.insert(Point::new(x, 1));
+    }
+
+    let mut data_holder = DataHolder::new();
+    *data_holder.board.cell_mut(1, 1) = Figure::new(ROOK, WHITE);
+    let movies: HashSet<Point> = data_holder.generate_figure_movies(1, 1).iter().map(|m| m.to).collect();
+
+    assert_eq!(movies, expected_movies);
+}
+
+#[test]
+fn test_rook_eaten() {
+    let mut data_holder = DataHolder::new();
+    *data_holder.board.cell_mut(1, 1) = Figure::new(ROOK, WHITE);
+    *data_holder.board.cell_mut(1, 6) = Figure::new(PAWN, BLACK);
+    let movies: HashSet<Move> = data_holder.generate_figure_movies(1, 1).iter().map(|m| *m).collect();
+
+    assert!(movies.contains(&Move { from: Point::new(1, 1), to: Point::new(1, 6) }));
+}
+
+#[test]
+fn test_generate_queen_take() {
+    let mut data_holder = DataHolder::new();
+    *data_holder.board.cell_mut(1, 1) = Figure::new(QUEEN, WHITE);
+    *data_holder.board.cell_mut(1, 6) = Figure::new(PAWN, BLACK);
+    let movies: HashSet<Move> = data_holder.generate_figure_movies(1, 1).iter().map(|m| *m).collect();
+
+    assert!(movies.contains(&Move { from: Point::new(1, 1), to: Point::new(1, 6) }));
 }

@@ -8,7 +8,6 @@ use std::fmt;
 use std::fmt::{Formatter, Debug};
 use core::slice::*;
 use crate::movement::Move;
-use std::panic::resume_unwind;
 
 #[derive(Copy, Clone)]
 pub struct PointArrayNode {

@@ -7,8 +7,9 @@ use crate::figure_list::FigureList;
 use crate::figure::{Color, Rank};
 use crate::figure::Rank::OUT;
 use std::slice::Iter;
+use crate::figure::Color::NONE;
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
 pub struct Move {
     pub from: Point,
     pub to: Point
@@ -130,12 +131,16 @@ impl<'a> MoveGenerator<'a> {
                 let eat_p = p + Point::new(-1, mult);
                 if self.board.point(eat_p).color() == eat_color { move_list.push(Move { from: p, to: eat_p }) }
 
-                self.move_if_not_out(p, 0, mult).iter().for_each(|to_p| {
-                    move_list.push(Move { from: p, to: *to_p });
-                });
+                let eat_p = p + Point::new(0, mult);
+                if self.board.point(eat_p).color() == NONE {
+                    move_list.push(Move { from: p, to: eat_p });
+                }
 
                 if p.y() == 1i8 && mult == 1 || p.y() == 6i8 && mult == -1 {
-                    move_list.push(Move { from: p, to: p + Point::new(0, mult * 2) })
+                    let eat_p = p + Point::new(0, mult * 2);
+                    if self.board.point(eat_p).color() != eat_color {
+                        move_list.push(Move { from: p, to:  eat_p})
+                    }
                 }
             }
             Rank::NONE => unreachable!(),
@@ -169,6 +174,7 @@ impl<'a> MoveGenerator<'a> {
 
     fn generate_directions_moves(&self, p: Point, directions_x: &[i8; 4], directions_y: &[i8; 4], move_list: &mut MoveList) {
         let f_color = self.board.point(p).color();
+        let enemy_color = f_color.invert();
         directions_x.iter()
             .zip(directions_y.iter())
             .for_each(|d| {
@@ -180,7 +186,7 @@ impl<'a> MoveGenerator<'a> {
                             let to_color = self.board.point(new_to_p).color();
                             if to_color == f_color { break; }
                             move_list.push(Move { from: p, to: new_to_p });
-                            if to_color != f_color { break; }
+                            if to_color == enemy_color { break; }
                             to_p = new_to_p
                         }
                     }

@@ -2,7 +2,6 @@ use crate::board::ByteBoard;
 use crate::figure_list::{FigureList, LinkedNodeRestoreInfo};
 use crate::movement::{MoveList, MoveGenerator};
 use crate::figure::{Color, W_INFINITY};
-use crate::point::Point;
 
 pub struct ScoreEstimator {
     pub board: ByteBoard,
@@ -15,10 +14,16 @@ impl ScoreEstimator {
         }
     }
 
-    pub fn min_max_simple(&mut self, depth: i32, friend_list: &mut FigureList, enemy_list: &mut FigureList, enemy_color: Color) -> i32 {
+    pub fn min_max_simple(&mut self, depth: i32, friend_list: &mut FigureList, enemy_list: &mut FigureList, friend_color: Color) -> i32 {
         if depth <= 0 {
             return self.evaluate_score(friend_list, enemy_list);
         }
+
+        // println!("depth: {}, friend_color: {:?}", depth, friend_color);
+        // println!("{}", self.board);
+        // println!();
+
+        let enemy_color = friend_color.invert();
 
         // unsafe { println!("{:?}", (*friend_list.first).point); }
         let move_list = MoveList::new(&MoveGenerator::new(&self.board, friend_list));
@@ -34,7 +39,7 @@ impl ScoreEstimator {
                 figure_list_to_node = enemy_list.remove(movement.to);
             }
 
-            let cur_score = - self.min_max_simple(depth - 1, enemy_list, friend_list, enemy_color.invert());
+            let cur_score = -self.min_max_simple(depth - 1, enemy_list, friend_list, enemy_color.invert());
             if cur_score > score { score = cur_score; }
 
             self.board.unmake_move(movement, to_figure);
