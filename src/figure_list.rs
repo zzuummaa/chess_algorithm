@@ -90,7 +90,7 @@ impl Iterator for LinkedNodeIterator {
 
 pub struct FigureList {
     pub buffer: [PointLinkedNode; 16],
-    first: *mut PointLinkedNode,
+    pub first: *mut PointLinkedNode,
 }
 
 impl FigureList {
@@ -108,6 +108,11 @@ impl FigureList {
                 counter += 1;
             }
         });
+        if counter == 0 {
+            self.first = ptr::null_mut();
+            return;
+        }
+
         heapsort(&mut self.buffer[0..counter], |a, b| {
             board.point(a.point).weight() > board.point(b.point).weight()
         });

@@ -21,7 +21,7 @@ impl DataHolder {
             board: ByteBoard::empty(),
             white_list: FigureList::default(),
             black_list: FigureList::default(),
-            move_list: Default::default()
+            move_list: MoveList::default()
         }
     }
 

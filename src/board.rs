@@ -42,8 +42,8 @@ impl ByteBoard {
         *self.point_mut(movement.to) = figure;
     }
 
-    pub fn cell_mut(&mut self, literal: usize, number: usize) -> &mut Figure {
-        &mut self.cells[literal + 4][number + 4]
+    pub fn cell_mut(&mut self, literal: isize, number: isize) -> &mut Figure {
+        &mut self.cells[(literal + 4) as usize][(number + 4) as usize]
     }
 
     pub fn cell(&self, literal: isize, number: isize) -> &Figure {
@@ -55,7 +55,7 @@ impl ByteBoard {
     }
 
     pub fn point_mut(&mut self, point: Point) -> &mut Figure {
-        self.cell_mut(point.x() as usize, point.y() as usize)
+        self.cell_mut(point.x() as isize, point.y() as isize)
     }
 
     pub fn cell_iter(&self) -> impl Iterator<Item = (Point, &Figure)> {
