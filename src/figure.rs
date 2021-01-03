@@ -24,11 +24,11 @@ pub const W_QUEEN: i32 = 9 * W_PAWN;
 pub const W_INFINITY: i32 = 10 * W_QUEEN;
 pub const W_KING: i32 = W_INFINITY;
 
-const FIGURE_WEIGHT: [i32; 7] = [0, W_KING, W_QUEEN, W_ROOK, W_BISHOP, W_KNIGHT, W_PAWN];
+const FIGURE_WEIGHT: [i32; 8] = [0, W_KING, W_QUEEN, W_ROOK, W_BISHOP, W_KNIGHT, W_PAWN, 0];
 
 impl From<u8> for Rank {
     fn from(item: u8) -> Self {
-        unsafe { return ::std::mem::transmute(item) };
+        unsafe { return ::std::mem::transmute(item & 7) };
     }
 }
 
@@ -38,6 +38,16 @@ pub enum Color {
     NONE = 0,
     WHITE = 64,
     BLACK = 128,
+}
+
+impl Color {
+    pub fn invert(self) -> Self {
+        match self {
+            Color::NONE => Color::NONE,
+            Color::WHITE => Color::BLACK,
+            Color::BLACK => Color::WHITE
+        }
+    }
 }
 
 impl From<u8> for Color {
@@ -57,7 +67,7 @@ impl Figure {
     }
 
     pub fn rank(&self) -> Rank {
-        Rank::from(self.0 & 7)
+        Rank::from(self.0)
     }
 
     pub fn color(&self) -> Color {

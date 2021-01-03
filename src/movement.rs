@@ -5,7 +5,7 @@ use std::mem::MaybeUninit;
 use crate::board::ByteBoard;
 use crate::figure_list::FigureList;
 use crate::figure::{Color, Rank};
-use crate::figure::Rank::{OUT, PAWN};
+use crate::figure::Rank::OUT;
 use std::slice::Iter;
 
 #[derive(Debug)]
@@ -78,7 +78,7 @@ static BISHOP_DIRECTIONS_Y: [i8; 4] = [ 1, 1, -1, -1 ];
 
 impl<'a> Generator for MoveGenerator<'a> {
     fn fill(&self, move_list: &mut MoveList) {
-        println!("{}\n", self.board);
+        // println!("{}\n", self.board);
         move_list.clear();
         self.figures.iter().for_each(|p| {
             self.fill_for_figure(p, move_list);

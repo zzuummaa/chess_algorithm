@@ -8,6 +8,7 @@ use std::fmt;
 use std::fmt::{Formatter, Debug};
 use core::slice::*;
 use crate::movement::Move;
+use std::panic::resume_unwind;
 
 #[derive(Copy, Clone)]
 pub struct PointArrayNode {
@@ -80,9 +81,9 @@ impl Iterator for LinkedNodeIterator {
     fn next(&mut self) -> Option<Self::Item> {
         match unsafe { self.cur.as_mut() } {
             None => None,
-            Some(e) => {
-                self.cur = e.next;
-                Some(e)
+            Some(cur) => {
+                self.cur = cur.next;
+                Some(cur)
             }
         }
     }
@@ -122,7 +123,7 @@ impl FigureList {
         self.first = &mut self.buffer[0];
     }
 
-    pub fn make_move(&mut self, movement: &Move) -> &mut PointLinkedNode {
+    pub fn make_move(&mut self, movement: &Move) -> *mut PointLinkedNode {
         let node = self.node_iter()
             .find(|n| n.point == movement.from)
             .unwrap();
@@ -131,8 +132,8 @@ impl FigureList {
         return node;
     }
 
-    pub fn unmake_move(movement: &Move, node: &mut PointLinkedNode) {
-        node.point = movement.from;
+    pub fn unmake_move(movement: &Move, node: *mut PointLinkedNode) {
+        unsafe { (*node).point = movement.from; }
     }
 
     pub fn remove(&mut self, point: Point) -> LinkedNodeRestoreInfo {
@@ -146,10 +147,19 @@ impl FigureList {
             }
         }
 
+        if restore_info.cur.is_null() { return restore_info; }
+
+        if restore_info.prev.is_null() {
+            self.first = unsafe { (*restore_info.cur).next }
+        } else {
+            unsafe {
+                (*restore_info.prev).next = (*restore_info.cur).next;
+            }
+        }
         return restore_info;
     }
 
-    pub fn restore(&mut self, restore_info: &mut LinkedNodeRestoreInfo) {
+    pub fn restore(&mut self, restore_info: LinkedNodeRestoreInfo) {
         let cur = match unsafe { restore_info.cur.as_mut() } {
             None => return,
             Some(cur) => cur
