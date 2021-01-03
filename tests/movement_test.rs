@@ -19,26 +19,26 @@ impl DataHolder {
     fn new() -> DataHolder {
         DataHolder {
             board: ByteBoard::empty(),
-            white_list: FigureList::new(),
-            black_list: FigureList::new(),
+            white_list: FigureList::default(),
+            black_list: FigureList::default(),
             move_list: Default::default()
         }
     }
 
     fn generate_figure_movies(&mut self, x: i8, y: i8) -> &MoveList {
-        MoveGenerator::new(&self.board, &self.white_list).generate_for_figure(Point::new(x, y), &mut self.move_list);
+        MoveGenerator::new(&self.board, &self.white_list).fill_for_figure(Point::new(x, y), &mut self.move_list);
         &self.move_list
     }
 
     fn generate_white_movies(&mut self) -> &MoveList {
         self.white_list.fill(&self.board, WHITE);
-        MoveGenerator::new(&self.board, &self.white_list).generate(&mut self.move_list);
+        MoveGenerator::new(&self.board, &self.white_list).fill(&mut self.move_list);
         &self.move_list
     }
 
     fn generate_black_movies(&mut self) -> &MoveList {
         self.black_list.fill(&self.board, BLACK);
-        MoveGenerator::new(&self.board, &self.black_list).generate(&mut self.move_list);
+        MoveGenerator::new(&self.board, &self.black_list).fill(&mut self.move_list);
         &self.move_list
     }
 }

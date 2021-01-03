@@ -5,13 +5,17 @@ use std::mem::MaybeUninit;
 use crate::board::ByteBoard;
 use crate::figure_list::FigureList;
 use crate::figure::{Color, Rank};
-use crate::figure::Rank::OUT;
+use crate::figure::Rank::{OUT, PAWN};
 use std::slice::Iter;
 
 #[derive(Debug)]
 pub struct Move {
     pub from: Point,
     pub to: Point
+}
+
+pub trait Generator {
+    fn fill(&self, move_list: &mut MoveList);
 }
 
 #[derive(Debug)]
@@ -21,6 +25,12 @@ pub struct MoveList {
 }
 
 impl MoveList {
+    pub fn new<T: Generator>(generator: &T) -> Self {
+        let mut move_list = MoveList::default();
+        generator.fill(&mut move_list);
+        return move_list;
+    }
+
     pub fn push(&mut self, m: Move) {
         self.buffer[self.len] = m;
         self.len += 1
@@ -66,19 +76,22 @@ static ROOK_DIRECTIONS_Y: [i8; 4] = [ 1, 0, 0, -1 ];
 static BISHOP_DIRECTIONS_X: [i8; 4] = [ 1, -1, 1, -1 ];
 static BISHOP_DIRECTIONS_Y: [i8; 4] = [ 1, 1, -1, -1 ];
 
+impl<'a> Generator for MoveGenerator<'a> {
+    fn fill(&self, move_list: &mut MoveList) {
+        println!("{}\n", self.board);
+        move_list.clear();
+        self.figures.iter().for_each(|p| {
+            self.fill_for_figure(p, move_list);
+        });
+    }
+}
+
 impl<'a> MoveGenerator<'a> {
     pub fn new(board: &'a ByteBoard, figures: &'a FigureList) -> Self {
         MoveGenerator { board, figures }
     }
 
-    pub fn generate(&self, move_list: &mut MoveList) {
-        move_list.clear();
-        self.figures.iter().for_each(|p| {
-            self.generate_for_figure(p, move_list);
-        });
-    }
-
-    pub fn generate_for_figure(&self, p: Point, move_list: &mut MoveList) {
+    pub fn fill_for_figure(&self, p: Point, move_list: &mut MoveList) {
         let f =  self.board.point(p);
         match f.rank() {
             Rank::KING => {
@@ -95,7 +108,7 @@ impl<'a> MoveGenerator<'a> {
                 self.generate_directions_moves(p, &BISHOP_DIRECTIONS_X, &BISHOP_DIRECTIONS_Y, move_list);
             }
             Rank::KNIGHT => {
-                self.generate_moves(p, &KNIGHT_MOVES_X, &KNIGHT_MOVES_X, move_list);
+                self.generate_moves(p, &KNIGHT_MOVES_X, &KNIGHT_MOVES_Y, move_list);
             }
             Rank::PAWN => {
                 let eat_color;
@@ -128,6 +141,10 @@ impl<'a> MoveGenerator<'a> {
             Rank::NONE => unreachable!(),
             Rank::OUT => unreachable!()
         }
+
+        // if move_list.iter().last().is_some() {
+        //     println!("{} - {:?}", f, move_list.iter().last().unwrap());
+        // }
     }
 
     pub fn move_if_not_out(&self, p: Point, dx: i8, dy: i8) -> Option<Point> {

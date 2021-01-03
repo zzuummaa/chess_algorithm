@@ -7,6 +7,7 @@ use std::ptr;
 use std::fmt;
 use std::fmt::{Formatter, Debug};
 use core::slice::*;
+use crate::movement::Move;
 
 #[derive(Copy, Clone)]
 pub struct PointArrayNode {
@@ -38,6 +39,17 @@ impl PointLinkedNode {
     }
 }
 
+pub struct LinkedNodeRestoreInfo {
+    prev: *mut PointLinkedNode,
+    cur: *mut PointLinkedNode,
+}
+
+impl Default for LinkedNodeRestoreInfo {
+    fn default() -> Self {
+        LinkedNodeRestoreInfo { prev: ptr::null_mut(), cur: ptr::null_mut() }
+    }
+}
+
 #[derive(Copy, Clone)]
 pub struct PointLinkedNodeIterator {
     cur: *mut PointLinkedNode
@@ -57,14 +69,35 @@ impl Iterator for PointLinkedNodeIterator {
     }
 }
 
+#[derive(Copy, Clone)]
+pub struct LinkedNodeIterator {
+    cur: *mut PointLinkedNode
+}
+
+impl Iterator for LinkedNodeIterator {
+    type Item = &'static mut PointLinkedNode;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match unsafe { self.cur.as_mut() } {
+            None => None,
+            Some(e) => {
+                self.cur = e.next;
+                Some(e)
+            }
+        }
+    }
+}
+
 pub struct FigureList {
     pub buffer: [PointLinkedNode; 16],
     first: *mut PointLinkedNode,
 }
 
 impl FigureList {
-    pub fn new() -> Self {
-        FigureList { buffer: [PointLinkedNode::new(); 16], first: ptr::null_mut() }
+    pub fn new(board: &ByteBoard, color: Color) -> Self {
+        let mut list = FigureList::default();
+        list.fill(board, color);
+        return list;
     }
 
     pub fn fill(&mut self, board: &ByteBoard, color: Color) {
@@ -84,8 +117,63 @@ impl FigureList {
         self.first = &mut self.buffer[0];
     }
 
+    pub fn make_move(&mut self, movement: &Move) -> &mut PointLinkedNode {
+        let node = self.node_iter()
+            .find(|n| n.point == movement.from)
+            .unwrap();
+
+        node.point = movement.to;
+        return node;
+    }
+
+    pub fn unmake_move(movement: &Move, node: &mut PointLinkedNode) {
+        node.point = movement.from;
+    }
+
+    pub fn remove(&mut self, point: Point) -> LinkedNodeRestoreInfo {
+        let mut restore_info = LinkedNodeRestoreInfo::default();
+
+        for node in self.node_iter() {
+            restore_info.prev = restore_info.cur;
+            restore_info.cur = node;
+            if node.point == point {
+                break;
+            }
+        }
+
+        return restore_info;
+    }
+
+    pub fn restore(&mut self, restore_info: &mut LinkedNodeRestoreInfo) {
+        let cur = match unsafe { restore_info.cur.as_mut() } {
+            None => return,
+            Some(cur) => cur
+        };
+
+        match unsafe { restore_info.prev.as_mut() } {
+            None => {
+                cur.next = self.first;
+                self.first = cur;
+            }
+            Some(prev) => {
+                cur.next = prev.next;
+                prev.next = cur;
+            }
+        }
+    }
+
     pub fn iter(&self) -> PointLinkedNodeIterator {
         PointLinkedNodeIterator { cur : self.first }
+    }
+
+    pub fn node_iter(&self) -> LinkedNodeIterator {
+        LinkedNodeIterator { cur : self.first }
+    }
+}
+
+impl Default for FigureList {
+    fn default() -> Self {
+        FigureList { buffer: [PointLinkedNode::new(); 16], first: ptr::null_mut() }
     }
 }
 

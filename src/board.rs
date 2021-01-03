@@ -1,11 +1,13 @@
 #![allow(dead_code)]
 
 use crate::point::*;
+use crate::movement::Move;
 use crate::figure::*;
 use std::fmt;
 use std::fmt::{Display, Formatter, Debug};
+use crate::figure::Rank::NONE;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct ByteBoard {
     /// First index is letter,
     /// Second index is number
@@ -26,6 +28,18 @@ impl ByteBoard {
         }
 
         board
+    }
+
+    pub fn make_move(&mut self, movement: &Move) -> Figure {
+        let old_to = *self.point(movement.to);
+        *self.point_mut(movement.to) = *self.point(movement.from);
+        *self.point_mut(movement.from) = Figure::new(NONE, Color::NONE);
+        return old_to;
+    }
+
+    pub fn unmake_move(&mut self, movement: &Move, figure: Figure) {
+        *self.point_mut(movement.from) = *self.point(movement.to);
+        *self.point_mut(movement.to) = figure;
     }
 
     pub fn cell_mut(&mut self, literal: usize, number: usize) -> &mut Figure {
