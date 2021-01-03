@@ -1,6 +1,6 @@
 use crate::board::ByteBoard;
 use crate::figure_list::{FigureList, LinkedNodeRestoreInfo};
-use crate::movement::{MoveList, MoveGenerator};
+use crate::movement::{MoveList, MoveGenerator, Move};
 use crate::figure::{Color, W_INFINITY};
 
 pub struct ScoreEstimator {
@@ -14,9 +14,9 @@ impl ScoreEstimator {
         }
     }
 
-    pub fn min_max_simple(&mut self, depth: i32, friend_list: &mut FigureList, enemy_list: &mut FigureList, friend_color: Color) -> i32 {
+    pub fn min_max_simple(&mut self, depth: i32, friend_list: &mut FigureList, enemy_list: &mut FigureList, friend_color: Color) -> (i32, Option<Move>) {
         if depth <= 0 {
-            return self.evaluate_score(friend_list, enemy_list);
+            return (self.evaluate_score(friend_list, enemy_list), None);
         }
 
         // println!("depth: {}, friend_color: {:?}", depth, friend_color);
@@ -29,7 +29,8 @@ impl ScoreEstimator {
         let move_list = MoveList::new(&MoveGenerator::new(&self.board, friend_list));
         // unsafe { println!("{:?}", (*friend_list.first).point); }
 
-        let mut score = - W_INFINITY;
+        let mut best_score = - W_INFINITY;
+        let mut best_move: Option<Move> = None;
         for movement in move_list.iter() {
             let to_figure = self.board.make_move(movement);
             let figure_list_from_node = friend_list.make_move(movement);
@@ -39,8 +40,11 @@ impl ScoreEstimator {
                 figure_list_to_node = enemy_list.remove(movement.to);
             }
 
-            let cur_score = -self.min_max_simple(depth - 1, enemy_list, friend_list, enemy_color.invert());
-            if cur_score > score { score = cur_score; }
+            let cur_score = -self.min_max_simple(depth - 1, enemy_list, friend_list, enemy_color).0;
+            if cur_score > best_score {
+                best_score = cur_score;
+                best_move = Some(*movement);
+            }
 
             self.board.unmake_move(movement, to_figure);
             FigureList::unmake_move(movement, figure_list_from_node);
@@ -50,7 +54,7 @@ impl ScoreEstimator {
             }
         }
 
-        return score;
+        return (best_score, best_move);
     }
 
     fn evaluate_score(&self, friend_list: &mut FigureList, enemy_list: &mut FigureList) -> i32 {

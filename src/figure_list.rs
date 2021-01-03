@@ -5,7 +5,7 @@ use crate::board::*;
 use crate::figure::*;
 use std::ptr;
 use std::fmt;
-use std::fmt::{Formatter, Debug};
+use std::fmt::{Formatter, Debug, Display};
 use core::slice::*;
 use crate::movement::Move;
 
@@ -188,6 +188,17 @@ impl FigureList {
 impl Default for FigureList {
     fn default() -> Self {
         FigureList { buffer: [PointLinkedNode::new(); 16], first: ptr::null_mut() }
+    }
+}
+
+impl Display for FigureList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "[")?;
+        for p in self.iter() {
+            write!(f, "{:?}", p)?;
+        }
+        write!(f, "]")?;
+        Ok(())
     }
 }
 
