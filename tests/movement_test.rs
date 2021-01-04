@@ -114,7 +114,7 @@ fn test_rook_movies() {
 }
 
 #[test]
-fn test_rook_eaten() {
+fn test_rook_eat() {
     let mut data_holder = DataHolder::new();
     *data_holder.board.cell_mut(1, 1) = Figure::new(ROOK, WHITE);
     *data_holder.board.cell_mut(1, 6) = Figure::new(PAWN, BLACK);

@@ -1,18 +1,27 @@
 #![allow(dead_code)]
 
-use crate::point::Point;
+use std::fmt::{Display, Formatter};
+use std::fmt;
 use std::mem::MaybeUninit;
-use crate::board::ByteBoard;
-use crate::figure_list::FigureList;
-use crate::figure::{Color, Rank};
-use crate::figure::Rank::OUT;
 use std::slice::Iter;
+
+use crate::board::ByteBoard;
+use crate::figure::{Color, Rank};
 use crate::figure::Color::NONE;
+use crate::figure::Rank::OUT;
+use crate::figure_list::FigureList;
+use crate::point::Point;
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
 pub struct Move {
     pub from: Point,
     pub to: Point
+}
+
+impl Display for Move {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{} -> {}", self.from, self.to)
+    }
 }
 
 pub trait Generator {
@@ -143,8 +152,8 @@ impl<'a> MoveGenerator<'a> {
                     }
                 }
             }
-            Rank::NONE => unreachable!(),
-            Rank::OUT => unreachable!()
+            Rank::NONE => unreachable!("board has no figure at {}", p),
+            Rank::OUT => unreachable!("out of board at {}", p)
         }
 
         // if move_list.iter().last().is_some() {

@@ -195,7 +195,7 @@ impl Display for FigureList {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "[")?;
         for p in self.iter() {
-            write!(f, "{:?}", p)?;
+            write!(f, "{}, ", p)?;
         }
         write!(f, "]")?;
         Ok(())

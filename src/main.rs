@@ -1,16 +1,16 @@
 #![feature(exclusive_range_pattern)]
 
 use std::io;
-use chess_algorithm::board::ByteBoard;
-use chess_algorithm::figure::Color::{WHITE, BLACK};
-use chess_algorithm::figure::Color;
 use std::io::Write;
-use chess_algorithm::figure_list::FigureList;
-use chess_algorithm::score_estimator::ScoreEstimator;
+
+use chess_algorithm::board::ByteBoard;
+use chess_algorithm::figure::Color::{BLACK, WHITE};
+use chess_algorithm::figure::Color;
 use chess_algorithm::figure::Rank::{KING, NONE};
-use chess_algorithm::movement::{MoveList, MoveGenerator, Move};
+use chess_algorithm::figure_list::FigureList;
+use chess_algorithm::movement::{Move, MoveGenerator, MoveList};
 use chess_algorithm::point::Point;
-use std::ops::Sub;
+use chess_algorithm::score_estimator::ScoreEstimator;
 
 fn is_king_taken(board: &ByteBoard, list: &FigureList) -> bool {
     list.iter().find(|p| board.point(*p).rank() == KING).is_none()
@@ -30,8 +30,8 @@ fn sub_char(a: char, b: char) -> i8 {
 }
 
 fn make_move(board: &mut ByteBoard, friend_list: &mut FigureList, enemy_list: &mut FigureList, movement: &Move) {
-    friend_list.make_move(&movement);
-    let figure = board.make_move(&movement);
+    friend_list.make_move(movement);
+    let figure = board.make_move(movement);
     if figure.rank() != NONE { enemy_list.remove(movement.to); }
 }
 
@@ -42,7 +42,7 @@ fn main() {
     println!();
 
     let mut user_input = String::new();
-    let mut player_color: Color;
+    let player_color: Color;
     let depth = 5;
 
     loop {
@@ -62,7 +62,7 @@ fn main() {
         break;
     }
 
-    let mut algorithm_color = player_color.invert();
+    let algorithm_color = player_color.invert();
 
     let mut score_estimator = ScoreEstimator::new(&ByteBoard::default());
     let mut algorithm_list = FigureList::new(&score_estimator.board, algorithm_color);
@@ -149,8 +149,8 @@ fn main() {
         if algorithm_move.is_none() { return; }
         make_move(&mut score_estimator.board, &mut algorithm_list, &mut player_list, &algorithm_move.unwrap());
 
-        println!("your move: {:?}", player_move);
-        println!("algorithm move: {:?}", algorithm_move.unwrap());
+        println!("your move: {}", player_move);
+        println!("algorithm move: {}", algorithm_move.unwrap());
         println!();
     }
 }

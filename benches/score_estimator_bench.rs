@@ -15,6 +15,6 @@ fn bench_node_iterations(b: &mut Bencher) {
     let mut black_list = FigureList::new(&board, BLACK);
     b.iter(|| {
         let mut score_estimator = ScoreEstimator::new(&board);
-        score_estimator.min_max_simple(6, &mut white_list, &mut black_list, WHITE);
+        score_estimator.min_max_simple(5, &mut white_list, &mut black_list, WHITE);
     });
 }
