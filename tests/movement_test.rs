@@ -4,14 +4,14 @@ use chess_algorithm::board::ByteBoard;
 use chess_algorithm::figure::Figure;
 use chess_algorithm::figure::Rank::{KING, PAWN, QUEEN, ROOK};
 use chess_algorithm::figure::Color::{WHITE, BLACK};
-use chess_algorithm::figure_list::FigureList;
+use chess_algorithm::figure_list::{FigurePointerList};
 use std::collections::HashSet;
 use chess_algorithm::point::Point;
 
 struct DataHolder {
     board: ByteBoard,
-    white_list: FigureList,
-    black_list: FigureList,
+    white_list: FigurePointerList,
+    black_list: FigurePointerList,
     move_list: MoveList
 }
 
@@ -19,8 +19,8 @@ impl DataHolder {
     fn new() -> DataHolder {
         DataHolder {
             board: ByteBoard::empty(),
-            white_list: FigureList::default(),
-            black_list: FigureList::default(),
+            white_list: FigurePointerList::default(),
+            black_list: FigurePointerList::default(),
             move_list: MoveList::default()
         }
     }

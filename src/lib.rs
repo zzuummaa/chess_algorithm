@@ -1,4 +1,5 @@
 #![feature(sort_internals)]
+#![feature(linked_list_cursors)]
 
 pub mod board;
 pub mod figure;

@@ -7,16 +7,16 @@ use chess_algorithm::board::ByteBoard;
 use chess_algorithm::figure::Color::{BLACK, WHITE};
 use chess_algorithm::figure::Color;
 use chess_algorithm::figure::Rank::{KING, NONE};
-use chess_algorithm::figure_list::FigureList;
+use chess_algorithm::figure_list::FigurePointerList;
 use chess_algorithm::movement::{Move, MoveGenerator, MoveList};
 use chess_algorithm::point::Point;
 use chess_algorithm::score_estimator::ScoreEstimator;
 
-fn is_king_taken(board: &ByteBoard, list: &FigureList) -> bool {
+fn is_king_taken(board: &ByteBoard, list: &FigurePointerList) -> bool {
     list.iter().find(|p| board.point(*p).rank() == KING).is_none()
 }
 
-fn generate_move(score_estimator: &mut ScoreEstimator, friend_list: &mut FigureList, enemy_list: &mut FigureList, friend_color: Color, depth: i32) -> Option<Move> {
+fn generate_move(score_estimator: &mut ScoreEstimator, friend_list: &mut FigurePointerList, enemy_list: &mut FigurePointerList, friend_color: Color, depth: i32) -> Option<Move> {
     score_estimator
         .min_max_simple(depth, friend_list, enemy_list, friend_color).1
         .or_else(|| {
@@ -29,7 +29,7 @@ fn sub_char(a: char, b: char) -> i8 {
     a as i8 - b as i8
 }
 
-fn make_move(board: &mut ByteBoard, friend_list: &mut FigureList, enemy_list: &mut FigureList, movement: &Move) {
+fn make_move(board: &mut ByteBoard, friend_list: &mut FigurePointerList, enemy_list: &mut FigurePointerList, movement: &Move) {
     friend_list.make_move(movement);
     let figure = board.make_move(movement);
     if figure.rank() != NONE { enemy_list.remove(movement.to); }
@@ -65,8 +65,8 @@ fn main() {
     let algorithm_color = player_color.invert();
 
     let mut score_estimator = ScoreEstimator::new(&ByteBoard::default());
-    let mut algorithm_list = FigureList::new(&score_estimator.board, algorithm_color);
-    let mut player_list = FigureList::new(&score_estimator.board, player_color);
+    let mut algorithm_list = FigurePointerList::new(&score_estimator.board, algorithm_color);
+    let mut player_list = FigurePointerList::new(&score_estimator.board, player_color);
 
     if algorithm_color == WHITE {
         let movement = generate_move(&mut score_estimator, &mut algorithm_list, &mut player_list, algorithm_color, depth);

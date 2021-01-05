@@ -1,7 +1,8 @@
 use crate::board::ByteBoard;
-use crate::figure_list::{FigureList, LinkedNodeRestoreInfo};
+use crate::figure_list::{FigurePointerList, LinkedNodeRestoreInfo};
 use crate::movement::{MoveList, MoveGenerator, Move};
 use crate::figure::{Color, W_INFINITY};
+use crate::figure::Rank::NONE;
 
 pub struct ScoreEstimator {
     pub board: ByteBoard,
@@ -14,7 +15,7 @@ impl ScoreEstimator {
         }
     }
 
-    pub fn min_max_simple(&mut self, depth: i32, friend_list: &mut FigureList, enemy_list: &mut FigureList, friend_color: Color) -> (i32, Option<Move>) {
+    pub fn min_max_simple(&mut self, depth: i32, friend_list: &mut FigurePointerList, enemy_list: &mut FigurePointerList, friend_color: Color) -> (i32, Option<Move>) {
         if depth <= 0 {
             return (self.evaluate_score(friend_list, enemy_list), None);
         }
@@ -33,12 +34,21 @@ impl ScoreEstimator {
         let mut best_move: Option<Move> = None;
         for movement in move_list.iter() {
             let to_figure = self.board.make_move(movement);
-            let figure_list_from_node = friend_list.make_move(movement);
+            let friend_list_restore_info = friend_list.make_move(movement);
 
-            let mut figure_list_to_node = LinkedNodeRestoreInfo::default();
+            let mut enemy_list_restore_info = LinkedNodeRestoreInfo::default();
             if to_figure.color() == enemy_color {
-                figure_list_to_node = enemy_list.remove(movement.to);
+                enemy_list_restore_info =
+                    enemy_list.remove(movement.to);
+                // println!("eaten {} -> {}", self.board.point(movement.to), to_figure);
             }
+
+            // match enemy_list.iter().find(|p| self.board.point(*p).rank() == NONE) {
+            //     None => {}
+            //     Some(p) => {
+            //         unreachable!("{}", p)
+            //     }
+            // }
 
             let cur_score = -self.min_max_simple(depth - 1, enemy_list, friend_list, enemy_color).0;
             if cur_score > best_score {
@@ -47,17 +57,18 @@ impl ScoreEstimator {
             }
 
             self.board.unmake_move(movement, to_figure);
-            FigureList::unmake_move(movement, figure_list_from_node);
+            friend_list.unmake_move(movement, friend_list_restore_info);
 
             if to_figure.color() == enemy_color {
-                enemy_list.restore(figure_list_to_node);
+                enemy_list.restore(enemy_list_restore_info);
+                // enemy_list.restore(movement.to);
             }
         }
 
         return (best_score, best_move);
     }
 
-    fn evaluate_score(&self, friend_list: &mut FigureList, enemy_list: &mut FigureList) -> i32 {
+    fn evaluate_score(&self, friend_list: &FigurePointerList, enemy_list: &FigurePointerList) -> i32 {
         let friend_score: i32 = friend_list.iter()
             .map(|p| self.board.point(p).weight())
             .sum();

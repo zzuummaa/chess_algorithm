@@ -1,13 +1,17 @@
 #![allow(dead_code)]
 
-use crate::point::*;
+use core::slice::*;
+use std::collections::linked_list::CursorMut;
+use std::collections::LinkedList;
+use std::fmt;
+use std::fmt::{Debug, Display, Formatter};
+use std::iter::FilterMap;
+use std::ptr;
+
 use crate::board::*;
 use crate::figure::*;
-use std::ptr;
-use std::fmt;
-use std::fmt::{Formatter, Debug, Display};
-use core::slice::*;
 use crate::movement::Move;
+use crate::point::*;
 
 #[derive(Copy, Clone)]
 pub struct PointArrayNode {
@@ -88,14 +92,169 @@ impl Iterator for LinkedNodeIterator {
     }
 }
 
-pub struct FigureList {
+pub struct FigureArrayList {
+    buffer: [PointArrayNode; 16]
+}
+
+impl FigureArrayList {
+    pub fn new(board: &ByteBoard, color: Color) -> Self {
+        let mut list = FigureArrayList::default();
+        list.fill(board, color);
+        return list;
+    }
+
+    pub fn fill(&mut self, board: &ByteBoard, color: Color) {
+        board.cell_iter()
+            .filter_map(|(p, f)| if f.color() == color { Some(p) } else { None })
+            .enumerate()
+            .for_each(|(i, p)| self.buffer[i] = PointArrayNode{ point: p, is_present: true });
+
+        heapsort(&mut self.buffer, |a, b| {
+            board.point(a.point).weight() > board.point(b.point).weight()
+        });
+    }
+
+    fn find(&self, point: Point, is_present: bool) -> Option<usize> {
+        self.buffer.iter().position(|pa| {
+            pa.is_present == is_present && pa.point == point
+        })
+    }
+
+    pub fn make_move(&mut self, movement: &Move) {
+        match self.find(movement.from, true) {
+            None => unreachable!(),
+            Some(i) => {
+                self.buffer[i].point = movement.to;
+            }
+        }
+    }
+
+    pub fn unmake_move(&mut self, movement: &Move) {
+        match self.find(movement.to, true) {
+            None => unreachable!(),
+            Some(i) => {
+                self.buffer[i].point = movement.from
+            }
+        }
+    }
+
+    pub fn remove(&mut self, point: Point) {
+        match self.find(point, true) {
+            None => unreachable!(),
+            Some(i) => {
+                self.buffer[i].is_present = false
+            }
+        }
+    }
+
+    pub fn restore(&mut self, point: Point) {
+        match self.find(point, false) {
+            None => unreachable!(),
+            Some(i) => {
+                self.buffer[i].is_present = true
+            }
+        }
+    }
+
+    pub fn iter(&self) -> FilterMap<Iter<'_, PointArrayNode>, fn(&'_ PointArrayNode) -> Option<Point>> {
+        self.buffer.iter().filter_map(|pa| if pa.is_present { Some(pa.point) } else { None } )
+    }
+}
+
+impl Default for FigureArrayList {
+    fn default() -> Self {
+        FigureArrayList { buffer: [PointArrayNode::new(); 16] }
+    }
+}
+
+pub struct FigureLinkedList {
+    list: LinkedList<Point>
+}
+
+impl FigureLinkedList {
+    pub fn new(board: &ByteBoard, color: Color) -> Self {
+        let mut list = FigureLinkedList::default();
+        list.fill(board, color);
+        return list;
+    }
+
+    pub fn fill(&mut self, board: &ByteBoard, color: Color) {
+        let mut vec: Vec<_> = board.cell_iter()
+            .filter_map(|(p, f)| if f.color() == color { Some(p) } else { None })
+            .collect();
+
+        vec.sort_by(|a, b| {
+            board.point(*b).weight().cmp(&board.point(*a).weight())
+        });
+
+        self.list = vec.iter().map(|p| *p).collect();
+    }
+
+    fn find(&mut self, point: Point) -> CursorMut<Point> {
+        let mut cursor = self.list.cursor_front_mut();
+
+        loop {
+            match cursor.current() {
+                None => break cursor,
+                Some(p) => {
+                    if *p == point {
+                        break cursor;
+                    }
+                }
+            }
+            cursor.move_next();
+        }
+    }
+
+    pub fn make_move(&mut self, movement: &Move) {
+        let mut cursor = self.find(movement.from);
+        match cursor.current() {
+            Some(p) => {
+                *p = movement.to;
+            }
+            None => unreachable!()
+        }
+    }
+
+    pub fn unmake_move(&mut self, movement: &Move) {
+        let mut cursor = self.find(movement.to);
+        match cursor.current() {
+            Some(p) => {
+                *p = movement.from;
+            }
+            None => unreachable!()
+        }
+    }
+
+    pub fn remove(&mut self, point: Point) {
+        let mut cursor = self.find(point);
+        if cursor.current().is_none() { return; }
+        cursor.remove_current();
+    }
+
+    pub fn restore(&mut self, point: Point) {
+        self.list.push_front(point);
+    }
+
+    pub fn iter(&self) -> std::collections::linked_list::Iter<'_, Point> {
+        self.list.iter()
+    }
+}
+
+impl Default for FigureLinkedList {
+    fn default() -> Self {
+        FigureLinkedList { list: LinkedList::new() }
+    }
+}
+
+pub struct FigurePointerList {
     pub buffer: [PointLinkedNode; 16],
     pub first: *mut PointLinkedNode,
 }
 
-impl FigureList {
+impl FigurePointerList {
     pub fn new(board: &ByteBoard, color: Color) -> Self {
-        let mut list = FigureList::default();
+        let mut list = FigurePointerList::default();
         list.fill(board, color);
         return list;
     }
@@ -131,7 +290,7 @@ impl FigureList {
         return node;
     }
 
-    pub fn unmake_move(movement: &Move, node: *mut PointLinkedNode) {
+    pub fn unmake_move(&mut self, movement: &Move, node: *mut PointLinkedNode) {
         unsafe { (*node).point = movement.from; }
     }
 
@@ -185,13 +344,13 @@ impl FigureList {
     }
 }
 
-impl Default for FigureList {
+impl Default for FigurePointerList {
     fn default() -> Self {
-        FigureList { buffer: [PointLinkedNode::new(); 16], first: ptr::null_mut() }
+        FigurePointerList { buffer: [PointLinkedNode::new(); 16], first: ptr::null_mut() }
     }
 }
 
-impl Display for FigureList {
+impl Display for FigurePointerList {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "[")?;
         for p in self.iter() {
@@ -203,7 +362,7 @@ impl Display for FigureList {
 }
 
 #[allow(unused_variables)]
-impl Debug for FigureList {
+impl Debug for FigurePointerList {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         Ok(())
     }

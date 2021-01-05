@@ -9,7 +9,7 @@ use crate::board::ByteBoard;
 use crate::figure::{Color, Rank};
 use crate::figure::Color::NONE;
 use crate::figure::Rank::OUT;
-use crate::figure_list::FigureList;
+use crate::figure_list::FigurePointerList;
 use crate::point::Point;
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
@@ -71,7 +71,7 @@ impl Default for MoveList {
 
 pub struct MoveGenerator<'a> {
     pub board: &'a ByteBoard,
-    pub figures: &'a FigureList,
+    pub figures: &'a FigurePointerList,
 }
 
 static KING_MOVES_X: [i8; 8] = [ 0, 1, 1, 0, -1, -1, -1, 1 ];
@@ -97,7 +97,7 @@ impl<'a> Generator for MoveGenerator<'a> {
 }
 
 impl<'a> MoveGenerator<'a> {
-    pub fn new(board: &'a ByteBoard, figures: &'a FigureList) -> Self {
+    pub fn new(board: &'a ByteBoard, figures: &'a FigurePointerList) -> Self {
         MoveGenerator { board, figures }
     }
 
@@ -141,7 +141,7 @@ impl<'a> MoveGenerator<'a> {
                 if self.board.point(eat_p).color() == eat_color { move_list.push(Move { from: p, to: eat_p }) }
 
                 let eat_p = p + Point::new(0, mult);
-                if self.board.point(eat_p).color() == NONE {
+                if self.board.point(eat_p).rank() == Rank::NONE {
                     move_list.push(Move { from: p, to: eat_p });
                 }
 
