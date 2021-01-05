@@ -2,7 +2,6 @@ use crate::board::ByteBoard;
 use crate::figure_list::{FigurePointerList, LinkedNodeRestoreInfo};
 use crate::movement::{MoveList, MoveGenerator, Move};
 use crate::figure::{Color, W_INFINITY};
-use crate::figure::Rank::NONE;
 
 pub struct ScoreEstimator {
     pub board: ByteBoard,

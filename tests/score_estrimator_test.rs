@@ -1,7 +1,9 @@
-use chess_algorithm::score_estimator::ScoreEstimator;
-use chess_algorithm::figure::Color::{WHITE, BLACK};
 use chess_algorithm::board::ByteBoard;
+use chess_algorithm::figure::Color::{BLACK, WHITE};
+use chess_algorithm::figure::Figure;
+use chess_algorithm::figure::Rank::{KNIGHT, PAWN};
 use chess_algorithm::figure_list::FigurePointerList;
+use chess_algorithm::score_estimator::ScoreEstimator;
 
 #[test]
 fn test_simple_min_max() {

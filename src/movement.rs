@@ -7,7 +7,6 @@ use std::slice::Iter;
 
 use crate::board::ByteBoard;
 use crate::figure::{Color, Rank};
-use crate::figure::Color::NONE;
 use crate::figure::Rank::OUT;
 use crate::figure_list::FigurePointerList;
 use crate::point::Point;

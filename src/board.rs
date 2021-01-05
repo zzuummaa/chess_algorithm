@@ -43,10 +43,14 @@ impl ByteBoard {
     }
 
     pub fn cell_mut(&mut self, literal: isize, number: isize) -> &mut Figure {
+        debug_assert!(literal < 16 && literal >= -4);
+        debug_assert!(number < 16 && number >= -4);
         &mut self.cells[(literal + 4) as usize][(number + 4) as usize]
     }
 
     pub fn cell(&self, literal: isize, number: isize) -> &Figure {
+        debug_assert!(literal < 16 && literal >= -4);
+        debug_assert!(number < 16 && number >= -4);
         &self.cells[(literal + 4) as usize][(number + 4) as usize]
     }
 
