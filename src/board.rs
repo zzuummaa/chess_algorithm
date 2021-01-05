@@ -49,8 +49,8 @@ impl ByteBoard {
     }
 
     pub fn cell(&self, literal: isize, number: isize) -> &Figure {
-        debug_assert!(literal < 16 && literal >= -4);
-        debug_assert!(number < 16 && number >= -4);
+        debug_assert!(literal < 12 && literal >= -4);
+        debug_assert!(number < 12 && number >= -4);
         &self.cells[(literal + 4) as usize][(number + 4) as usize]
     }
 
