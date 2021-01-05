@@ -6,33 +6,13 @@ use std::io::Write;
 use chess_algorithm::board::ByteBoard;
 use chess_algorithm::figure::Color::{BLACK, WHITE};
 use chess_algorithm::figure::Color;
-use chess_algorithm::figure::Rank::{KING, NONE};
-use chess_algorithm::figure_list::FigurePointerList;
-use chess_algorithm::movement::{Move, MoveGenerator, MoveList};
+use chess_algorithm::movement::Move;
 use chess_algorithm::point::Point;
-use chess_algorithm::score_estimator::ScoreEstimator;
-
-fn is_king_taken(board: &ByteBoard, list: &FigurePointerList) -> bool {
-    list.iter().find(|p| board.point(*p).rank() == KING).is_none()
-}
-
-fn generate_move(score_estimator: &mut ScoreEstimator, friend_list: &mut FigurePointerList, enemy_list: &mut FigurePointerList, friend_color: Color, depth: i32) -> Option<Move> {
-    score_estimator
-        .min_max_simple(depth, friend_list, enemy_list, friend_color).1
-        .or_else(|| {
-            println!("Movements unavailable. Likely it's draw...");
-            return None;
-        })
-}
+use chess_algorithm::score_estimator::BoardDataHolder;
+use std::time::Instant;
 
 fn sub_char(a: char, b: char) -> i8 {
     a as i8 - b as i8
-}
-
-fn make_move(board: &mut ByteBoard, friend_list: &mut FigurePointerList, enemy_list: &mut FigurePointerList, movement: &Move) {
-    friend_list.make_move(movement);
-    let figure = board.make_move(movement);
-    if figure.rank() != NONE { enemy_list.remove(movement.to); }
 }
 
 fn main() {
@@ -43,7 +23,7 @@ fn main() {
 
     let mut user_input = String::new();
     let player_color: Color;
-    let depth = 5;
+    let depth = 6;
 
     loop {
         print!("Would you like to play white? (y/n): ");
@@ -63,36 +43,35 @@ fn main() {
     }
 
     let algorithm_color = player_color.invert();
-
-    let mut score_estimator = ScoreEstimator::new(&ByteBoard::default());
-    let mut algorithm_list = FigurePointerList::new(&score_estimator.board, algorithm_color);
-    let mut player_list = FigurePointerList::new(&score_estimator.board, player_color);
-
-    if algorithm_color == WHITE {
-        let movement = generate_move(&mut score_estimator, &mut algorithm_list, &mut player_list, algorithm_color, depth);
-        if movement.is_none() { return; }
-        make_move(&mut score_estimator.board, &mut algorithm_list, &mut player_list, &movement.unwrap());
-    }
+    let mut board_data_holder = BoardDataHolder::new(&ByteBoard::default());
 
     println!();
     println!("===================================");
     println!("=         Game started!           =");
     println!("===================================");
 
+    if algorithm_color == WHITE {
+        let timer = Instant::now();
+
+        let algorithm_move = board_data_holder
+            .controller(algorithm_color)
+            .min_max_simple(depth).1;
+
+        if algorithm_move.is_none() { return; }
+        board_data_holder.controller(algorithm_color).make_move(&algorithm_move.unwrap());
+
+        println!("algorithm move: {}", algorithm_move.unwrap());
+        println!("calc time: {} sec", timer.elapsed().as_secs_f32())
+    }
+
     loop {
         println!();
-        println!("{}", &score_estimator.board);
+        println!("{}", &board_data_holder.board);
 
-        if is_king_taken(&score_estimator.board, &algorithm_list) {
+        if board_data_holder.controller(player_color).is_king_alive() {
+            println!();
             println!("===================================");
             println!("=    Chess algorithm is win!      =");
-            println!("===================================");
-            break;
-        }
-
-        if is_king_taken(&score_estimator.board, &algorithm_list) {
-            println!("===================================");
-            println!("=         You are win!            =");
             println!("===================================");
             break;
         }
@@ -129,28 +108,32 @@ fn main() {
                     _ => false
                 }
             }).count();
+
             if parse_count != 4 { continue }
 
-            let f = score_estimator.board.point(m.from);
-            if f.color() != player_color { continue }
-
-            let move_generator = MoveGenerator::new(&score_estimator.board, &player_list);
-            let mut move_list = MoveList::default();
-            move_generator.fill_for_figure(m.from, &mut move_list);
-
-            if move_list.iter().find(|it| **it == m).is_some() {
+            if board_data_holder.controller(player_color).validate_and_make_move(&m).is_some() {
                 break m;
             }
         };
-
-        make_move(&mut score_estimator.board, &mut player_list, &mut algorithm_list, &player_move);
-
-        let algorithm_move = generate_move(&mut score_estimator, &mut algorithm_list, &mut player_list, algorithm_color, depth);
-        if algorithm_move.is_none() { return; }
-        make_move(&mut score_estimator.board, &mut algorithm_list, &mut player_list, &algorithm_move.unwrap());
-
         println!("your move: {}", player_move);
+
+        if board_data_holder.controller(algorithm_color).is_king_alive() {
+            println!();
+            println!("===================================");
+            println!("=         You are win!            =");
+            println!("===================================");
+            break;
+        }
+
+        let timer = Instant::now();
+        let algorithm_move = board_data_holder.controller(algorithm_color).min_max_simple(depth).1;
+        if algorithm_move.is_none() {
+            println!("Movements unavailable. Likely it's draw...");
+            return;
+        }
+        board_data_holder.controller(algorithm_color).make_move(&algorithm_move.unwrap());
+
         println!("algorithm move: {}", algorithm_move.unwrap());
-        println!();
+        println!("calc time: {} sec", timer.elapsed().as_secs_f32())
     }
 }

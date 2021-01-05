@@ -248,7 +248,7 @@ impl Default for FigureLinkedList {
 }
 
 pub struct FigurePointerList {
-    pub buffer: [PointLinkedNode; 16],
+    pub buffer: Box<[PointLinkedNode; 16]>,
     pub first: *mut PointLinkedNode,
 }
 
@@ -346,7 +346,7 @@ impl FigurePointerList {
 
 impl Default for FigurePointerList {
     fn default() -> Self {
-        FigurePointerList { buffer: [PointLinkedNode::new(); 16], first: ptr::null_mut() }
+        FigurePointerList { buffer: Box::new([PointLinkedNode::new(); 16]), first: ptr::null_mut() }
     }
 }
 

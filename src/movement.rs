@@ -2,7 +2,6 @@
 
 use std::fmt::{Display, Formatter};
 use std::fmt;
-use std::mem::MaybeUninit;
 use std::slice::Iter;
 
 use crate::board::ByteBoard;
@@ -63,7 +62,8 @@ impl Default for MoveList {
         MoveList {
             len: 0,
             // TODO reduce overhead for initialization
-            buffer: unsafe { MaybeUninit::uninit().assume_init() }
+            // buffer: unsafe { MaybeUninit::uninit().assume_init() }
+            buffer: [Move{ from: Default::default(), to: Default::default() }; 150]
         }
     }
 }
@@ -122,7 +122,6 @@ impl<'a> MoveGenerator<'a> {
             Rank::PAWN => {
                 let eat_color;
                 let mult = match f.color() {
-                    Color::NONE => unreachable!(),
                     Color::WHITE => {
                         eat_color = Color::BLACK;
                         1i8
@@ -131,6 +130,7 @@ impl<'a> MoveGenerator<'a> {
                         eat_color = Color::WHITE;
                         -1i8
                     }
+                    _ => unreachable!(),
                 };
 
                 let eat_p = p + Point::new(1, mult);

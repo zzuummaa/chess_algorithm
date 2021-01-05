@@ -7,3 +7,4 @@ pub mod figure_list;
 pub mod point;
 pub mod movement;
 pub mod score_estimator;
+pub mod game;

@@ -38,14 +38,14 @@ pub enum Color {
     NONE = 0,
     WHITE = 64,
     BLACK = 128,
+    WHITEBLACK = 64 + 128,
 }
 
 impl Color {
     pub fn invert(self) -> Self {
-        match self {
-            Color::NONE => Color::NONE,
-            Color::WHITE => Color::BLACK,
-            Color::BLACK => Color::WHITE
+        unsafe {
+            let c = ::std::mem::transmute::<_, u8>(self) ^ (64 + 128);
+            return ::std::mem::transmute(c);
         }
     }
 }
@@ -83,6 +83,7 @@ impl Display for Figure {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let color = match self.color() {
             Color::NONE => 'n',
+            Color::WHITEBLACK => '%',
             Color::WHITE => 'w',
             Color::BLACK => 'b',
         };

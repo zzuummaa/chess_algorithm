@@ -7,6 +7,7 @@ use chess_algorithm::figure::Color::{WHITE, BLACK};
 use chess_algorithm::figure_list::{FigurePointerList};
 use std::collections::HashSet;
 use chess_algorithm::point::Point;
+use chess_algorithm::score_estimator::BoardDataHolder;
 
 struct DataHolder {
     board: ByteBoard,
@@ -41,6 +42,15 @@ impl DataHolder {
         MoveGenerator::new(&self.board, &self.black_list).fill(&mut self.move_list);
         &self.move_list
     }
+}
+
+#[test]
+fn test_pointers() {
+    let mut data_holder = BoardDataHolder::new(&ByteBoard::default());
+    let controller = data_holder.controller(WHITE);
+    let move_list = MoveList::default();
+    controller.is_king_alive();
+    move_list.iter().count();
 }
 
 #[test]

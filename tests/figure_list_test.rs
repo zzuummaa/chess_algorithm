@@ -12,7 +12,7 @@ use chess_algorithm::point::Point;
 #[test]
 fn test_fill_is_descending_sort() {
     let mut board = ByteBoard::default();
-    let mut list = FigureList::new(&board, WHITE);
+    let mut list = FigurePointerList::new(&board, WHITE);
     assert!(list.iter().is_sorted_by(|a, b| {
         let pa = board.point(*a);
         let pb = board.point(*b);
@@ -23,7 +23,7 @@ fn test_fill_is_descending_sort() {
 #[test]
 fn test_several_iterators() {
     let mut board = ByteBoard::default();
-    let mut list = FigureList::new(&board, WHITE);
+    let mut list = FigurePointerList::new(&board, WHITE);
 
     // let movement = Move { from: Point::new(1, 1), to: Point::new(1, 2) };
     let point = Point::new(2, 1);
