@@ -19,6 +19,7 @@ pub struct BoardController<'a> {
     enemy_list: &'a mut FigurePointerList,
     friend_color: Color,
     enemy_color: Color,
+    pub position_counter: i32
 }
 
 type MoveInfo = (Figure, *mut PointLinkedNode, LinkedNodeRestoreInfo, Move);
@@ -73,6 +74,7 @@ impl<'a> BoardController<'a> {
 
     pub fn min_max_simple(&mut self, depth: i32) -> (i32, Option<Move>) {
         if depth <= 0 {
+            self.position_counter += 1;
             return (self.evaluate_score(), None);
         }
 
@@ -148,7 +150,8 @@ impl BoardDataHolder {
                     friend_list: &mut self.white_list,
                     enemy_list: &mut self.black_list,
                     friend_color: WHITE,
-                    enemy_color: BLACK
+                    enemy_color: BLACK,
+                    position_counter: 0
                 }
             }
             BLACK => {
@@ -157,7 +160,8 @@ impl BoardDataHolder {
                     friend_list: &mut self.black_list,
                     enemy_list: &mut self.white_list,
                     friend_color: BLACK,
-                    enemy_color: WHITE
+                    enemy_color: WHITE,
+                    position_counter: 0
                 }
             }
             _ => unreachable!(),

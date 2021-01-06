@@ -9,6 +9,7 @@ use chess_algorithm::score_estimator::{BoardDataHolder, BoardController};
 use std::time::Instant;
 
 trait MoveSource {
+    fn position_counter(&self) -> i32;
     fn next(&mut self, controller: &mut BoardController) -> Option<Move>;
 }
 
@@ -18,6 +19,10 @@ struct ConsoleMoveSource {
 }
 
 impl MoveSource for ConsoleMoveSource {
+    fn position_counter(&self) -> i32 {
+        0
+    }
+
     fn next(&mut self, controller: &mut BoardController<'_>) -> Option<Move> {
         if controller.friend_movies().len() == 0 { return None }
 
@@ -44,11 +49,19 @@ impl MoveSource for ConsoleMoveSource {
 }
 
 #[derive(Default)]
-struct SimpleMinMaxMoveSource;
+struct SimpleMinMaxMoveSource {
+    position_counter: i32
+}
 
 impl MoveSource for SimpleMinMaxMoveSource {
+    fn position_counter(&self) -> i32 {
+        self.position_counter
+    }
+
     fn next(&mut self, controller: &mut BoardController<'_>) -> Option<Move> {
-        controller.min_max_simple(5).1
+        let movement = controller.min_max_simple(6).1;
+        self.position_counter = controller.position_counter;
+        return movement;
     }
 }
 
@@ -110,7 +123,7 @@ fn main() {
         board_data_holder.controller(WHITE).make_move(&white_move.unwrap());
         println!();
         println!("{}", &board_data_holder.board);
-        println!("white move: {} ({} sec)", white_move.unwrap(), timer.elapsed().as_secs_f32());
+        println!("white move: {}, {} sec, {} positions", white_move.unwrap(), timer.elapsed().as_secs_f32(), white_source.position_counter());
 
         if board_data_holder.controller(BLACK).is_king_alive() {
             println!();
@@ -129,7 +142,7 @@ fn main() {
         board_data_holder.controller(BLACK).make_move(&black_move.unwrap());
         println!();
         println!("{}", &board_data_holder.board);
-        println!("black move: {} ({} sec)", black_move.unwrap(), timer.elapsed().as_secs_f32());
+        println!("black move: {}, {} sec, {} positions", black_move.unwrap(), timer.elapsed().as_secs_f32(), black_source.position_counter());
 
         if board_data_holder.controller(WHITE).is_king_alive() {
             println!();
