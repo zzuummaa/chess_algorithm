@@ -181,12 +181,12 @@ impl<'a> MoveGenerator<'a> {
                 let eat_p = p + Point::new(0, mult);
                 if self.board.point(eat_p).rank() == Rank::NONE {
                     move_list.push(Move { from: p, to: eat_p });
-                }
 
-                if p.y() == 1i8 && mult == 1 || p.y() == 6i8 && mult == -1 {
-                    let eat_p = p + Point::new(0, mult * 2);
-                    if self.board.point(eat_p).color() != eat_color {
-                        move_list.push(Move { from: p, to:  eat_p})
+                    if p.y() == 1i8 && mult == 1 || p.y() == 6i8 && mult == -1 {
+                        let eat_p = p + Point::new(0, mult * 2);
+                        if self.board.point(eat_p).rank() == Rank::NONE {
+                            move_list.push(Move { from: p, to:  eat_p})
+                        }
                     }
                 }
             }
