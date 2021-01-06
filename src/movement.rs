@@ -9,11 +9,50 @@ use crate::figure::{Color, Rank};
 use crate::figure::Rank::OUT;
 use crate::figure_list::FigurePointerList;
 use crate::point::Point;
+use std::mem::MaybeUninit;
+use std::hint::unreachable_unchecked;
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
 pub struct Move {
     pub from: Point,
     pub to: Point
+}
+
+fn sub_char(a: char, b: char) -> i8 {
+    a as i8 - b as i8
+}
+
+impl Move {
+    pub fn from_string(str: &str) -> Option<Self> {
+        if str.len() != 4 { return None }
+
+        let mut m = Move { from: Point::default(), to: Point::default() };
+        let parse_count = str.char_indices().filter(|c| {
+            match c.0 {
+                0..4 => {
+                    match c.0 {
+                        0 => if c.1 >= 'a' && c.1 <= 'h' { m.from = m.from + Point::new(-sub_char(c.1, 'h'), 0) }
+                        1 => if c.1 >= '1' && c.1 <= '8' { m.from = m.from + Point::new(0, sub_char(c.1, '1')) }
+                        2 => if c.1 >= 'a' && c.1 <= 'h' { m.to = m.to + Point::new(-sub_char(c.1, 'h'), 0) }
+                        3 => if c.1 >= '1' && c.1 <= '8' { m.to = m.to + Point::new(0, sub_char(c.1, '1')) }
+                        _ => unsafe { unreachable_unchecked() }
+                    }
+                    true
+                }
+                _ => false
+            }
+        }).count();
+
+        if parse_count != 4 { return None }
+
+        return Some(m)
+    }
+}
+
+impl Default for Move {
+    fn default() -> Self {
+        Move { from: Default::default(), to: Default::default() }
+    }
 }
 
 impl Display for Move {
@@ -62,8 +101,8 @@ impl Default for MoveList {
         MoveList {
             len: 0,
             // TODO reduce overhead for initialization
-            // buffer: unsafe { MaybeUninit::uninit().assume_init() }
-            buffer: [Move{ from: Default::default(), to: Default::default() }; 150]
+            buffer: unsafe { MaybeUninit::uninit().assume_init() }
+            // buffer: [Move{ from: Default::default(), to: Default::default() }; 150]
         }
     }
 }

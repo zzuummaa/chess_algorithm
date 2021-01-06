@@ -1,5 +1,6 @@
 #![feature(sort_internals)]
 #![feature(linked_list_cursors)]
+#![feature(exclusive_range_pattern)]
 
 pub mod board;
 pub mod figure;

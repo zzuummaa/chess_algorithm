@@ -1,5 +1,3 @@
-#![feature(exclusive_range_pattern)]
-
 use std::io;
 use std::io::Write;
 
@@ -7,13 +5,8 @@ use chess_algorithm::board::ByteBoard;
 use chess_algorithm::figure::Color::{BLACK, WHITE};
 use chess_algorithm::figure::Color;
 use chess_algorithm::movement::Move;
-use chess_algorithm::point::Point;
 use chess_algorithm::score_estimator::BoardDataHolder;
 use std::time::Instant;
-
-fn sub_char(a: char, b: char) -> i8 {
-    a as i8 - b as i8
-}
 
 fn main() {
     println!("===================================");
@@ -86,30 +79,10 @@ fn main() {
                 .read_line(&mut user_input)
                 .expect("Failed to read line");
 
-            user_input = user_input.trim_end().to_lowercase();
-
-            if user_input.len() != 4 {
-                continue;
-            }
-
-            let mut m = Move { from: Point::default(), to: Point::default() };
-            let parse_count = user_input.char_indices().filter(|c| {
-                match c.0 {
-                    0..4 => {
-                        match c.0 {
-                            0 => if c.1 >= 'a' && c.1 <= 'h' { m.from = m.from + Point::new(-sub_char(c.1, 'h'), 0) }
-                            1 => if c.1 >= '1' && c.1 <= '8' { m.from = m.from + Point::new(0, sub_char(c.1, '1')) }
-                            2 => if c.1 >= 'a' && c.1 <= 'h' { m.to = m.to + Point::new(-sub_char(c.1, 'h'), 0) }
-                            3 => if c.1 >= '1' && c.1 <= '8' { m.to = m.to + Point::new(0, sub_char(c.1, '1')) }
-                            _ => unreachable!()
-                        }
-                        true
-                    }
-                    _ => false
-                }
-            }).count();
-
-            if parse_count != 4 { continue }
+            let m = match Move::from_string(&user_input.trim_end().to_lowercase()) {
+                None => continue,
+                Some(m) => m
+            };
 
             if board_data_holder.controller(player_color).validate_and_make_move(&m).is_some() {
                 break m;
