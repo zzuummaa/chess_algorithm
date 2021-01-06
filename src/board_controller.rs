@@ -42,6 +42,13 @@ impl<'a> BoardController<'a> {
     }
 
     pub fn is_valid_move(&self, movement: &Move) -> bool {
+        if movement.from.x() > 7 || movement.from.x() < 0
+        || movement.from.y() > 7 || movement.from.y() < 0 {
+            return false;
+        }
+        if self.board.point(movement.from).color() != self.friend_color {
+            return false;
+        }
         let move_list = self.point_movies(movement.from);
         move_list.iter().find(|m| **m == *movement).is_some()
     }
