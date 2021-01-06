@@ -7,6 +7,7 @@ use chess_algorithm::figure::{Color, W_INFINITY};
 use chess_algorithm::movement::Move;
 use chess_algorithm::board_controller::{BoardDataHolder, BoardController};
 use std::time::Instant;
+use chess_algorithm::database::{DataBaseInstance, Game, MoveRecord};
 
 trait MoveSource {
     fn position_counter(&self) -> i32;
@@ -125,6 +126,10 @@ fn main() {
 
     let mut board_data_holder = BoardDataHolder::new(&ByteBoard::default());
 
+    let mut db_instance = DataBaseInstance::default();
+    let game = db_instance.add_game(Game::now()).unwrap();
+    let mut move_record = MoveRecord::new(&game);
+
     println!();
     println!("===================================");
     println!("=         Game started!           =");
@@ -144,6 +149,9 @@ fn main() {
         println!("{}", &board_data_holder.board);
         println!("white move: {}, {} sec, {} mln positions", white_move.unwrap(), timer.elapsed().as_secs_f32(), white_source.position_counter() as f32 / 1000_000f32);
 
+        move_record = move_record.to_next(&white_move.unwrap());
+        db_instance.add_move(&move_record).unwrap();
+
         if !board_data_holder.controller(BLACK).is_king_alive() {
             println!();
             println!("===================================");
@@ -162,6 +170,9 @@ fn main() {
         println!();
         println!("{}", &board_data_holder.board);
         println!("black move: {}, {} sec, {} mln positions", black_move.unwrap(), timer.elapsed().as_secs_f32(), black_source.position_counter() as f32 / 1000_000f32);
+
+        move_record = move_record.to_next(&black_move.unwrap());
+        db_instance.add_move(&move_record).unwrap();
 
         if !board_data_holder.controller(WHITE).is_king_alive() {
             println!();

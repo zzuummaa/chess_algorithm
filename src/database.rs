@@ -1,12 +1,14 @@
 use chrono::{DateTime, Utc};
 use rusqlite::{Connection, Error, params, Result};
 
+use crate::movement::Move;
+
 pub const DEFAULT_PATH: &str = "chess_game.db";
 
 #[derive(Debug)]
 pub struct Game {
     pub id: i32,
-    pub start_time: DateTime<Utc>
+    pub start_time: DateTime<Utc>,
 }
 
 impl Game {
@@ -23,6 +25,26 @@ pub struct MoveRecord {
     pub p_to: String,
 }
 
+impl MoveRecord {
+    pub fn new(game: &Game) -> MoveRecord {
+        MoveRecord {
+            game_id: game.id,
+            move_number: -1,
+            p_from: String::new(),
+            p_to: String::new(),
+        }
+    }
+
+    pub fn to_next(&self, movement: &Move) -> MoveRecord {
+        MoveRecord {
+            game_id: self.game_id,
+            move_number: self.move_number + 1,
+            p_from: movement.from.to_string(),
+            p_to: movement.to.to_string()
+        }
+    }
+}
+
 pub struct DataBaseInstance {
     connection: Connection
 }
@@ -34,14 +56,14 @@ impl DataBaseInstance {
 
     pub fn create_tables(&self) -> Result<(), Error> {
         self.connection.execute(
-        "CREATE TABLE IF NOT EXISTS game (
+            "CREATE TABLE IF NOT EXISTS game (
                 id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 start_time DATETIME NOT NULL
             )", params![],
         )?;
 
         self.connection.execute(
-        "CREATE TABLE IF NOT EXISTS move_record (
+            "CREATE TABLE IF NOT EXISTS move_record (
                 game_id INTEGER,
                 move_number INTEGER,
                 p_from CHAR(4),
@@ -67,7 +89,8 @@ impl DataBaseInstance {
         return Ok(game);
     }
 
-    pub fn add_move(&self, record: &MoveRecord) -> Result<(), Error>{
+    pub fn add_move(&self, record: &MoveRecord) -> Result<(), Error> {
+        if record.move_number < 0 { return Err(Error::InvalidQuery) }
         self.connection.execute(
             "INSERT INTO move_record (game_id, move_number, p_from, p_to) VALUES (?1, ?2, ?3, ?4)",
             params![record.game_id, record.move_number, record.p_from, record.p_to],
