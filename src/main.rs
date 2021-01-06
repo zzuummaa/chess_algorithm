@@ -3,7 +3,7 @@ use std::io::Write;
 
 use chess_algorithm::board::ByteBoard;
 use chess_algorithm::figure::Color::{BLACK, WHITE};
-use chess_algorithm::figure::Color;
+use chess_algorithm::figure::{Color, W_INFINITY};
 use chess_algorithm::movement::Move;
 use chess_algorithm::board_controller::{BoardDataHolder, BoardController};
 use std::time::Instant;
@@ -65,6 +65,23 @@ impl MoveSource for SimpleMinMaxMoveSource {
     }
 }
 
+#[derive(Default)]
+struct AlphaBettaMoveSource {
+    position_counter: i32
+}
+
+impl MoveSource for AlphaBettaMoveSource {
+    fn position_counter(&self) -> i32 {
+        self.position_counter
+    }
+
+    fn next(&mut self, controller: &mut BoardController<'_>) -> Option<Move> {
+        let movement = controller.alpha_betta(8, - W_INFINITY, W_INFINITY).1;
+        self.position_counter = controller.position_counter;
+        return movement;
+    }
+}
+
 fn read_move_source(color: Color) -> Box<dyn MoveSource> {
     loop {
         print!("Type source for {:?} side: ", color);
@@ -81,6 +98,7 @@ fn read_move_source(color: Color) -> Box<dyn MoveSource> {
                 match n {
                     1 => break Box::new(ConsoleMoveSource::default()),
                     2 => break Box::new(SimpleMinMaxMoveSource::default()),
+                    3 => break Box::new(AlphaBettaMoveSource::default()),
                     _ => {}
                 }
             }
@@ -99,6 +117,7 @@ fn main() {
     println!("Available move sources:");
     println!("1: Console gamer");
     println!("2: Simple min-max algorithm");
+    println!("3: Alpha-betta algorithm");
     println!();
 
     let mut white_source: Box<dyn MoveSource> = read_move_source(WHITE);

@@ -114,6 +114,40 @@ impl<'a> BoardController<'a> {
         return (best_score, best_move);
     }
 
+    pub fn alpha_betta(&mut self, depth: i32, mut alpha: i32, betta: i32) -> (i32, Option<Move>) {
+        if depth <= 0 {
+            self.position_counter += 1;
+            return (evaluate_score(self, |p, f| {
+                material_fn(p, f) + simple_positional_fn(p, f)
+            }), None);
+        }
+
+        let mut move_list = self.friend_movies();
+        move_list.sort_by(self.board, simple_positional_fn);
+
+        let mut best_score = - W_INFINITY;
+        let mut best_move: Option<Move> = None;
+        for movement in move_list.iter() {
+            let move_info = self.make_move(movement);
+            self.pass_move_to_enemy();
+            let mut cur_score = - self.alpha_betta(depth - 1, - (alpha + 1), - alpha).0;
+            if cur_score > alpha && cur_score < betta {
+                cur_score = - self.alpha_betta(depth - 1, - betta, - alpha).0;
+            }
+            self.pass_move_to_enemy();
+            self.unmake_move(move_info);
+
+            if cur_score > best_score {
+                best_score = cur_score;
+                best_move = Some(*movement);
+            }
+            if best_score > alpha { alpha = best_score }
+            if alpha >= betta { return (alpha, best_move) }
+        }
+
+        return (best_score, best_move);
+    }
+
     pub fn is_king_alive(&self) -> bool {
         self.friend_list.iter().find(|p| {
             let f = self.board.point(*p);

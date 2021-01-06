@@ -1,3 +1,5 @@
+#![feature(is_sorted)]
+
 extern crate chess_algorithm;
 use chess_algorithm::movement::*;
 use chess_algorithm::board::ByteBoard;
@@ -8,6 +10,7 @@ use chess_algorithm::figure_list::{FigurePointerList};
 use std::collections::HashSet;
 use chess_algorithm::point::Point;
 use chess_algorithm::board_controller::BoardDataHolder;
+use chess_algorithm::score::simple_positional_fn;
 
 struct DataHolder {
     board: ByteBoard,
@@ -28,7 +31,7 @@ impl DataHolder {
 
     fn generate_figure_movies(&mut self, x: i8, y: i8) -> &MoveList {
         MoveGenerator::new(&self.board, &self.white_list).fill_for_figure(Point::new(x, y), &mut self.move_list);
-        &self.move_list
+        &mut self.move_list
     }
 
     fn generate_white_movies(&mut self) -> &MoveList {
@@ -41,6 +44,10 @@ impl DataHolder {
         self.black_list.fill(&self.board, BLACK);
         MoveGenerator::new(&self.board, &self.black_list).fill(&mut self.move_list);
         &self.move_list
+    }
+
+    fn sort_moves(&mut self) {
+        self.move_list.sort_by(&self.board, simple_positional_fn);
     }
 }
 
@@ -173,4 +180,26 @@ fn test_pawn_first_moves_with_let() {
 
     let movies: HashSet<Point> = data_holder.generate_figure_movies(1, 1).iter().map(|m| m.to).collect();
     assert_eq!(movies, expected_movies);
+}
+
+#[test]
+fn test_is_movement_list_descending_sort() {
+    let mut data_holder = DataHolder::new();
+    *data_holder.board.cell_mut(1, 1) = Figure::new(QUEEN, WHITE);
+    *data_holder.board.cell_mut(1, 6) = Figure::new(PAWN, BLACK);
+
+    data_holder.generate_figure_movies(1, 1);
+    data_holder.sort_moves();
+
+    let movies_scores: Vec<_> = data_holder.move_list.iter().map(|m| {
+        let f = *data_holder.board.point(m.from);
+        let d_score = simple_positional_fn(m.to, f) - simple_positional_fn(m.from, f) + data_holder.board.point(m.to).weight();
+        (m, d_score)
+    }).collect();
+
+    movies_scores.iter().for_each(|(m, s)| {
+        println!("{}, {} -> {}, d_score: {}", m, data_holder.board.point(m.from), data_holder.board.point(m.to), s);
+    });
+
+    assert!(movies_scores.iter().map(|(m, s)| s).is_sorted_by(|a, b| Some(b.cmp(a))));
 }

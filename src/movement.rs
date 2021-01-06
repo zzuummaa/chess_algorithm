@@ -5,7 +5,7 @@ use std::fmt;
 use std::slice::Iter;
 
 use crate::board::ByteBoard;
-use crate::figure::{Color, Rank};
+use crate::figure::{Color, Rank, Figure};
 use crate::figure::Rank::OUT;
 use crate::figure_list::FigurePointerList;
 use crate::point::Point;
@@ -93,6 +93,16 @@ impl MoveList {
 
     pub fn iter(&self) -> Iter<'_, Move> {
         self.buffer[..self.len].iter()
+    }
+
+    pub fn sort_by<F: FnMut(Point, Figure) -> i32>(&mut self, board: &ByteBoard, mut positional_fn: F) {
+        self.buffer[0..self.len].sort_by(|a, b| {
+            let a_f = *board.point(a.from);
+            let b_f = *board.point(b.from);
+            let a_score = positional_fn(a.to, a_f) - positional_fn(a.from, a_f) + board.point(a.to).weight();
+            let b_score = positional_fn(b.to, b_f) - positional_fn(b.from, b_f) + board.point(b.to).weight();
+            b_score.cmp(&a_score)
+        });
     }
 }
 
