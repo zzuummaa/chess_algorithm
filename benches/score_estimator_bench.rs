@@ -6,7 +6,7 @@ use test::Bencher;
 
 use chess_algorithm::board::ByteBoard;
 use chess_algorithm::figure::Color::*;
-use chess_algorithm::score_estimator::*;
+use chess_algorithm::board_controller::*;
 
 #[bench]
 fn bench_node_iterations(b: &mut Bencher) {

@@ -5,7 +5,7 @@ use chess_algorithm::board::ByteBoard;
 use chess_algorithm::figure::Color::{BLACK, WHITE};
 use chess_algorithm::figure::Color;
 use chess_algorithm::movement::Move;
-use chess_algorithm::score_estimator::{BoardDataHolder, BoardController};
+use chess_algorithm::board_controller::{BoardDataHolder, BoardController};
 use std::time::Instant;
 
 trait MoveSource {
@@ -59,7 +59,7 @@ impl MoveSource for SimpleMinMaxMoveSource {
     }
 
     fn next(&mut self, controller: &mut BoardController<'_>) -> Option<Move> {
-        let movement = controller.min_max_simple(6).1;
+        let movement = controller.min_max_simple(5).1;
         self.position_counter = controller.position_counter;
         return movement;
     }
@@ -123,9 +123,9 @@ fn main() {
         board_data_holder.controller(WHITE).make_move(&white_move.unwrap());
         println!();
         println!("{}", &board_data_holder.board);
-        println!("white move: {}, {} sec, {} positions", white_move.unwrap(), timer.elapsed().as_secs_f32(), white_source.position_counter());
+        println!("white move: {}, {} sec, {} mln positions", white_move.unwrap(), timer.elapsed().as_secs_f32(), white_source.position_counter() as f32 / 1000_000f32);
 
-        if board_data_holder.controller(BLACK).is_king_alive() {
+        if !board_data_holder.controller(BLACK).is_king_alive() {
             println!();
             println!("===================================");
             println!("=      White side is win!         =");
@@ -142,12 +142,12 @@ fn main() {
         board_data_holder.controller(BLACK).make_move(&black_move.unwrap());
         println!();
         println!("{}", &board_data_holder.board);
-        println!("black move: {}, {} sec, {} positions", black_move.unwrap(), timer.elapsed().as_secs_f32(), black_source.position_counter());
+        println!("black move: {}, {} sec, {} mln positions", black_move.unwrap(), timer.elapsed().as_secs_f32(), black_source.position_counter() as f32 / 1000_000f32);
 
-        if board_data_holder.controller(WHITE).is_king_alive() {
+        if !board_data_holder.controller(WHITE).is_king_alive() {
             println!();
             println!("===================================");
-            println!("=         You are win!            =");
+            println!("=       Black side is win!        =");
             println!("===================================");
             break;
         }

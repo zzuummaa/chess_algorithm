@@ -7,7 +7,7 @@ use chess_algorithm::figure::Color::{WHITE, BLACK};
 use chess_algorithm::figure_list::{FigurePointerList};
 use std::collections::HashSet;
 use chess_algorithm::point::Point;
-use chess_algorithm::score_estimator::BoardDataHolder;
+use chess_algorithm::board_controller::BoardDataHolder;
 
 struct DataHolder {
     board: ByteBoard,

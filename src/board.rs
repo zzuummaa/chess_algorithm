@@ -105,11 +105,11 @@ impl Default for ByteBoard {
         *board.cell_mut(2, 7) = Figure::new(Rank::BISHOP, Color::BLACK);
         *board.cell_mut(5, 7) = Figure::new(Rank::BISHOP, Color::BLACK);
 
-        *board.cell_mut(3, 0) = Figure::new(Rank::QUEEN, Color::WHITE);
-        *board.cell_mut(3, 7) = Figure::new(Rank::QUEEN, Color::BLACK);
+        *board.cell_mut(4, 0) = Figure::new(Rank::QUEEN, Color::WHITE);
+        *board.cell_mut(4, 7) = Figure::new(Rank::QUEEN, Color::BLACK);
 
-        *board.cell_mut(4, 0) = Figure::new(Rank::KING, Color::WHITE);
-        *board.cell_mut(4, 7) = Figure::new(Rank::KING, Color::BLACK);
+        *board.cell_mut(3, 0) = Figure::new(Rank::KING, Color::WHITE);
+        *board.cell_mut(3, 7) = Figure::new(Rank::KING, Color::BLACK);
 
         board
     }

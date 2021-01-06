@@ -5,6 +5,7 @@ use crate::figure::{Color, W_INFINITY, Figure};
 use crate::figure::Color::{WHITE, BLACK};
 use crate::point::Point;
 use crate::figure::Rank::KING;
+use crate::score::*;
 
 pub struct BoardDataHolder {
     // TODO remove pub for preventing board changes
@@ -14,11 +15,11 @@ pub struct BoardDataHolder {
 }
 
 pub struct BoardController<'a> {
-    board: &'a mut ByteBoard,
-    friend_list: &'a mut FigurePointerList,
-    enemy_list: &'a mut FigurePointerList,
-    friend_color: Color,
-    enemy_color: Color,
+    pub(crate) board: &'a mut ByteBoard,
+    pub(crate) friend_list: &'a mut FigurePointerList,
+    pub(crate) enemy_list: &'a mut FigurePointerList,
+    pub(crate) friend_color: Color,
+    pub(crate) enemy_color: Color,
     pub position_counter: i32
 }
 
@@ -75,7 +76,9 @@ impl<'a> BoardController<'a> {
     pub fn min_max_simple(&mut self, depth: i32) -> (i32, Option<Move>) {
         if depth <= 0 {
             self.position_counter += 1;
-            return (self.evaluate_score(), None);
+            return (evaluate_score(self, |p, f| {
+                material_fn(p, f) + simple_positional_fn(p, f)
+            }), None);
         }
 
         // unsafe { println!("{:?}", (*friend_list.first).point); }
@@ -115,21 +118,7 @@ impl<'a> BoardController<'a> {
         self.friend_list.iter().find(|p| {
             let f = self.board.point(*p);
             f.rank() == KING && f.color() == self.friend_color
-        }).is_none()
-    }
-
-    pub fn evaluate_score(&self) -> i32 {
-        let friend_score: i32 = self.friend_list.iter()
-            .map(|p| self.board.point(p).weight())
-            .sum();
-        // println!("friend_score: {}", friend_score);
-
-        let enemy_score: i32 = self.enemy_list.iter()
-            .map(|p| self.board.point(p).weight())
-            .sum();
-        // println!("enemy_score: {}", enemy_score);
-
-        friend_score - enemy_score
+        }).is_some()
     }
 }
 
