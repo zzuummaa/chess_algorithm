@@ -1,7 +1,7 @@
 use crate::board::ByteBoard;
 use crate::figure_list::{FigurePointerList, LinkedNodeRestoreInfo, PointLinkedNode};
 use crate::movement::{MoveList, MoveGenerator, Move};
-use crate::figure::{Color, W_INFINITY, Figure, Rank};
+use crate::figure::{Color, W_INFINITY, Figure};
 use crate::figure::Color::{WHITE, BLACK};
 use crate::point::Point;
 use crate::figure::Rank::KING;
@@ -24,6 +24,11 @@ pub struct BoardController<'a> {
 type MoveInfo = (Figure, *mut PointLinkedNode, LinkedNodeRestoreInfo, Move);
 
 impl<'a> BoardController<'a> {
+    #[inline]
+    pub fn friend_color(&self) -> Color {
+        self.friend_color
+    }
+
     pub fn friend_movies(&self) -> MoveList {
         MoveList::new(&MoveGenerator::new(self.board, self.friend_list))
     }
@@ -34,16 +39,9 @@ impl<'a> BoardController<'a> {
         return move_list;
     }
 
-    pub fn validate_and_make_move(&mut self, movement: &Move) -> Option<MoveInfo> {
-        match self.board.point(movement.from).rank() {
-            Rank::OUT | Rank::NONE => return None,
-            _ => {}
-        }
+    pub fn is_valid_move(&self, movement: &Move) -> bool {
         let move_list = self.point_movies(movement.from);
-        match move_list.iter().find(|m| **m == *movement) {
-            None => None,
-            Some(_) => Some(self.make_move(movement))
-        }
+        move_list.iter().find(|m| **m == *movement).is_some()
     }
 
     pub fn make_move(&mut self, movement: &Move) -> MoveInfo {
