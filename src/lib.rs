@@ -10,3 +10,4 @@ pub mod movement;
 pub mod board_controller;
 pub mod game;
 pub mod score;
+pub mod database;
