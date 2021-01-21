@@ -18,12 +18,12 @@ pub struct ByteBoard {
 impl ByteBoard {
     pub fn empty() -> Self {
         let mut board = ByteBoard {
-            cells: [[Figure::new(Rank::OUT, Color::NONE); 16]; 16],
+            cells: [[Figure::new(Rank::OUT, Color::NONE, false); 16]; 16],
         };
 
         for i in 0..8 {
             for j in 0..8 {
-                *board.cell_mut(i, j) = Figure::new(Rank::NONE, Color::NONE);
+                *board.cell_mut(i, j) = Figure::new(Rank::NONE, Color::NONE, false);
             }
         }
 
@@ -33,7 +33,7 @@ impl ByteBoard {
     pub fn make_move(&mut self, movement: &Move) -> Figure {
         let old_to = *self.point(movement.to);
         *self.point_mut(movement.to) = *self.point(movement.from);
-        *self.point_mut(movement.from) = Figure::new(NONE, Color::NONE);
+        *self.point_mut(movement.from) = Figure::new(NONE, Color::NONE, false);
         return old_to;
     }
 
@@ -76,40 +76,40 @@ impl ByteBoard {
 impl Default for ByteBoard {
     fn default() -> Self {
         let mut board = ByteBoard {
-            cells: [[Figure::new(Rank::OUT, Color::NONE); 16]; 16],
+            cells: [[Figure::new(Rank::OUT, Color::NONE, false); 16]; 16],
         };
 
         for i in 0..8 {
             for j in 2..6 {
-                *board.cell_mut(i, j) = Figure::new(Rank::NONE, Color::NONE);
+                *board.cell_mut(i, j) = Figure::new(Rank::NONE, Color::NONE, false);
             }
         }
 
         for i in 0..8 {
-            *board.cell_mut(i, 1) = Figure::new(Rank::PAWN, Color::WHITE);
-            *board.cell_mut(i, 6) = Figure::new(Rank::PAWN, Color::BLACK);
+            *board.cell_mut(i, 1) = Figure::new(Rank::PAWN, Color::WHITE, false);
+            *board.cell_mut(i, 6) = Figure::new(Rank::PAWN, Color::BLACK, false);
         }
 
-        *board.cell_mut(0, 0) = Figure::new(Rank::ROOK, Color::WHITE);
-        *board.cell_mut(7, 0) = Figure::new(Rank::ROOK, Color::WHITE);
-        *board.cell_mut(0, 7) = Figure::new(Rank::ROOK, Color::BLACK);
-        *board.cell_mut(7, 7) = Figure::new(Rank::ROOK, Color::BLACK);
+        *board.cell_mut(0, 0) = Figure::new(Rank::ROOK, Color::WHITE, false);
+        *board.cell_mut(7, 0) = Figure::new(Rank::ROOK, Color::WHITE, false);
+        *board.cell_mut(0, 7) = Figure::new(Rank::ROOK, Color::BLACK, false);
+        *board.cell_mut(7, 7) = Figure::new(Rank::ROOK, Color::BLACK, false);
 
-        *board.cell_mut(1, 0) = Figure::new(Rank::KNIGHT, Color::WHITE);
-        *board.cell_mut(6, 0) = Figure::new(Rank::KNIGHT, Color::WHITE);
-        *board.cell_mut(1, 7) = Figure::new(Rank::KNIGHT, Color::BLACK);
-        *board.cell_mut(6, 7) = Figure::new(Rank::KNIGHT, Color::BLACK);
+        *board.cell_mut(1, 0) = Figure::new(Rank::KNIGHT, Color::WHITE, false);
+        *board.cell_mut(6, 0) = Figure::new(Rank::KNIGHT, Color::WHITE, false);
+        *board.cell_mut(1, 7) = Figure::new(Rank::KNIGHT, Color::BLACK, false);
+        *board.cell_mut(6, 7) = Figure::new(Rank::KNIGHT, Color::BLACK, false);
 
-        *board.cell_mut(2, 0) = Figure::new(Rank::BISHOP, Color::WHITE);
-        *board.cell_mut(5, 0) = Figure::new(Rank::BISHOP, Color::WHITE);
-        *board.cell_mut(2, 7) = Figure::new(Rank::BISHOP, Color::BLACK);
-        *board.cell_mut(5, 7) = Figure::new(Rank::BISHOP, Color::BLACK);
+        *board.cell_mut(2, 0) = Figure::new(Rank::BISHOP, Color::WHITE, true);
+        *board.cell_mut(5, 0) = Figure::new(Rank::BISHOP, Color::WHITE, true);
+        *board.cell_mut(2, 7) = Figure::new(Rank::BISHOP, Color::BLACK, true);
+        *board.cell_mut(5, 7) = Figure::new(Rank::BISHOP, Color::BLACK, true);
 
-        *board.cell_mut(4, 0) = Figure::new(Rank::QUEEN, Color::WHITE);
-        *board.cell_mut(4, 7) = Figure::new(Rank::QUEEN, Color::BLACK);
+        *board.cell_mut(4, 0) = Figure::new(Rank::QUEEN, Color::WHITE, false);
+        *board.cell_mut(4, 7) = Figure::new(Rank::QUEEN, Color::BLACK, false);
 
-        *board.cell_mut(3, 0) = Figure::new(Rank::KING, Color::WHITE);
-        *board.cell_mut(3, 7) = Figure::new(Rank::KING, Color::BLACK);
+        *board.cell_mut(3, 0) = Figure::new(Rank::KING, Color::WHITE, true);
+        *board.cell_mut(3, 7) = Figure::new(Rank::KING, Color::BLACK, true);
 
         board
     }

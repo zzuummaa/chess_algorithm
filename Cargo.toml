@@ -1,6 +1,6 @@
 [package]
 name = "chess_algorithm"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Stepan <stepannk@mail.ru>"]
 edition = "2018"
 

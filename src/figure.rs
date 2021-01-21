@@ -52,7 +52,7 @@ impl Color {
 
 impl From<u8> for Color {
     fn from(item: u8) -> Self {
-        unsafe { return ::std::mem::transmute(item) };
+        unsafe { return ::std::mem::transmute(item & (64 + 128)) };
     }
 }
 
@@ -60,9 +60,9 @@ impl From<u8> for Color {
 pub struct Figure(u8);
 
 impl Figure {
-    pub fn new(rank: Rank, color: Color) -> Figure {
+    pub fn new(rank: Rank, color: Color, flag: bool) -> Figure {
         Figure {
-            0: (rank as u8 + color as u8),
+            0: (rank as u8 + color as u8 + ((flag as u8) << 4)),
         }
     }
 
@@ -71,11 +71,15 @@ impl Figure {
     }
 
     pub fn color(&self) -> Color {
-        Color::from(self.0 & (64 + 128))
+        Color::from(self.0)
     }
 
     pub fn weight(&self) -> i32 {
         FIGURE_WEIGHT[self.rank() as usize]
+    }
+
+    pub fn is_flag_set(&self) -> bool {
+        (self.0 & 16) == 16
     }
 }
 
