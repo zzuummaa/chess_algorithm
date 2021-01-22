@@ -12,10 +12,19 @@ use crate::point::Point;
 use std::mem::MaybeUninit;
 use std::hint::unreachable_unchecked;
 
+#[repr(u8)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
+pub enum MoveType {
+    SIMPLE,
+    SWAP,
+    TRANSFORM,
+}
+
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
 pub struct Move {
     pub from: Point,
-    pub to: Point
+    pub to: Point,
+    pub m_type: MoveType
 }
 
 fn sub_char(a: char, b: char) -> i8 {
@@ -26,7 +35,7 @@ impl Move {
     pub fn from_string(str: &str) -> Option<Self> {
         if str.len() != 4 { return None }
 
-        let mut m = Move { from: Point::default(), to: Point::default() };
+        let mut m = Move::default();
         let parse_count = str.char_indices().filter(|c| {
             match c.0 {
                 0..4 => {
@@ -51,7 +60,7 @@ impl Move {
 
 impl Default for Move {
     fn default() -> Self {
-        Move { from: Default::default(), to: Default::default() }
+        Move { from: Default::default(), to: Default::default(), m_type: MoveType::SIMPLE }
     }
 }
 
@@ -183,19 +192,19 @@ impl<'a> MoveGenerator<'a> {
                 };
 
                 let eat_p = p + Point::new(1, mult);
-                if self.board.point(eat_p).color() == eat_color { move_list.push(Move { from: p, to: eat_p }) }
+                if self.board.point(eat_p).color() == eat_color { move_list.push(Move { from: p, to: eat_p, m_type: MoveType::SIMPLE }) }
 
                 let eat_p = p + Point::new(-1, mult);
-                if self.board.point(eat_p).color() == eat_color { move_list.push(Move { from: p, to: eat_p }) }
+                if self.board.point(eat_p).color() == eat_color { move_list.push(Move { from: p, to: eat_p, m_type: MoveType::SIMPLE }) }
 
                 let eat_p = p + Point::new(0, mult);
                 if self.board.point(eat_p).rank() == Rank::NONE {
-                    move_list.push(Move { from: p, to: eat_p });
+                    move_list.push(Move { from: p, to: eat_p, m_type: MoveType::SIMPLE });
 
                     if p.y() == 1i8 && mult == 1 || p.y() == 6i8 && mult == -1 {
                         let eat_p = p + Point::new(0, mult * 2);
                         if self.board.point(eat_p).rank() == Rank::NONE {
-                            move_list.push(Move { from: p, to:  eat_p})
+                            move_list.push(Move { from: p, to:  eat_p, m_type: MoveType::SIMPLE })
                         }
                     }
                 }
@@ -225,7 +234,7 @@ impl<'a> MoveGenerator<'a> {
             .filter_map(|dp| self.move_if_not_out(p, *dp.0, *dp.1))
             .filter(|to_p| f_color != self.board.point(*to_p).color())
             .for_each(|to_p| {
-                move_list.push(Move { from: p, to: to_p});
+                move_list.push(Move { from: p, to: to_p, m_type: MoveType::SIMPLE });
             });
     }
 
@@ -242,7 +251,7 @@ impl<'a> MoveGenerator<'a> {
                         Some(new_to_p) => {
                             let to_color = self.board.point(new_to_p).color();
                             if to_color == f_color { break; }
-                            move_list.push(Move { from: p, to: new_to_p });
+                            move_list.push(Move { from: p, to: new_to_p, m_type: MoveType::SIMPLE });
                             if to_color == enemy_color { break; }
                             to_p = new_to_p
                         }

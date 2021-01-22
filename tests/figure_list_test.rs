@@ -31,7 +31,7 @@ fn test_several_iterators() {
     // board.make_move(&movement);
     // let movement_info = list.make_move(&movement);
     let removed_figure = *board.point(point);
-    *board.point_mut(point) = Figure::new(Rank::NONE, NONE);
+    *board.point_mut(point) = Figure::new(Rank::NONE, NONE, false);
     let restore_info = list.remove(point);
 
     assert_eq!(list.node_iter().count(), 15);

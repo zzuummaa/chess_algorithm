@@ -74,7 +74,7 @@ fn test_generate_king_movies_without_outs() {
     expected_movies.insert(Point::new(0, 1));
 
     let mut data_holder = DataHolder::new();
-    *data_holder.board.cell_mut(1, 1) = Figure::new(KING, WHITE);
+    *data_holder.board.cell_mut(1, 1) = Figure::new(KING, WHITE, false);
     let movies: HashSet<Point> = data_holder.generate_white_movies().iter().map(|m| m.to).collect();
 
     assert_eq!(movies, expected_movies);
@@ -89,7 +89,7 @@ fn test_generate_king_movies_from_conner() {
     expected_movies.insert(Point::new(0, 1));
 
     let mut data_holder = DataHolder::new();
-    *data_holder.board.cell_mut(0, 0) = Figure::new(KING, WHITE);
+    *data_holder.board.cell_mut(0, 0) = Figure::new(KING, WHITE, false);
     let movies: HashSet<Point> = data_holder.generate_white_movies().iter().map(|m| m.to).collect();
 
     assert_eq!(movies, expected_movies);
@@ -103,8 +103,8 @@ fn test_generate_king_movies_with_friend_figure() {
     expected_movies.insert(Point::new(0, 1));
 
     let mut data_holder = DataHolder::new();
-    *data_holder.board.cell_mut(0, 0) = Figure::new(KING, WHITE);
-    *data_holder.board.cell_mut(1, 1) = Figure::new(PAWN, WHITE);
+    *data_holder.board.cell_mut(0, 0) = Figure::new(KING, WHITE, false);
+    *data_holder.board.cell_mut(1, 1) = Figure::new(PAWN, WHITE, false);
     let movies: HashSet<Point> = data_holder.generate_figure_movies(0, 0).iter().map(|m| m.to).collect();
 
     assert_eq!(movies, expected_movies);
@@ -124,7 +124,7 @@ fn test_rook_movies() {
     }
 
     let mut data_holder = DataHolder::new();
-    *data_holder.board.cell_mut(1, 1) = Figure::new(ROOK, WHITE);
+    *data_holder.board.cell_mut(1, 1) = Figure::new(ROOK, WHITE, false);
     let movies: HashSet<Point> = data_holder.generate_figure_movies(1, 1).iter().map(|m| m.to).collect();
 
     assert_eq!(movies, expected_movies);
@@ -133,21 +133,21 @@ fn test_rook_movies() {
 #[test]
 fn test_rook_eat() {
     let mut data_holder = DataHolder::new();
-    *data_holder.board.cell_mut(1, 1) = Figure::new(ROOK, WHITE);
-    *data_holder.board.cell_mut(1, 6) = Figure::new(PAWN, BLACK);
+    *data_holder.board.cell_mut(1, 1) = Figure::new(ROOK, WHITE, false);
+    *data_holder.board.cell_mut(1, 6) = Figure::new(PAWN, BLACK, false);
     let movies: HashSet<Move> = data_holder.generate_figure_movies(1, 1).iter().map(|m| *m).collect();
 
-    assert!(movies.contains(&Move { from: Point::new(1, 1), to: Point::new(1, 6) }));
+    assert!(movies.contains(&Move { from: Point::new(1, 1), to: Point::new(1, 6), m_type: MoveType::SIMPLE }));
 }
 
 #[test]
 fn test_generate_queen_take() {
     let mut data_holder = DataHolder::new();
-    *data_holder.board.cell_mut(1, 1) = Figure::new(QUEEN, WHITE);
-    *data_holder.board.cell_mut(1, 6) = Figure::new(PAWN, BLACK);
+    *data_holder.board.cell_mut(1, 1) = Figure::new(QUEEN, WHITE, false);
+    *data_holder.board.cell_mut(1, 6) = Figure::new(PAWN, BLACK, false);
     let movies: HashSet<Move> = data_holder.generate_figure_movies(1, 1).iter().map(|m| *m).collect();
 
-    assert!(movies.contains(&Move { from: Point::new(1, 1), to: Point::new(1, 6) }));
+    assert!(movies.contains(&Move { from: Point::new(1, 1), to: Point::new(1, 6), m_type: MoveType::SIMPLE }));
 }
 
 #[test]
@@ -158,7 +158,7 @@ fn test_pawn_first_moves() {
     expected_movies.insert(Point::new(1, 3));
 
     let mut data_holder = DataHolder::new();
-    *data_holder.board.cell_mut(1, 1) = Figure::new(PAWN, WHITE);
+    *data_holder.board.cell_mut(1, 1) = Figure::new(PAWN, WHITE, false);
     let movies: HashSet<Point> = data_holder.generate_figure_movies(1, 1).iter().map(|m| m.to).collect();
 
     assert_eq!(movies, expected_movies);
@@ -169,14 +169,14 @@ fn test_pawn_first_moves_with_let() {
     let mut expected_movies = HashSet::new();
 
     let mut data_holder = DataHolder::new();
-    *data_holder.board.cell_mut(1, 1) = Figure::new(PAWN, WHITE);
-    *data_holder.board.cell_mut(1, 2) = Figure::new(PAWN, BLACK);
+    *data_holder.board.cell_mut(1, 1) = Figure::new(PAWN, WHITE, false);
+    *data_holder.board.cell_mut(1, 2) = Figure::new(PAWN, BLACK, false);
     assert_eq!(data_holder.generate_figure_movies(1, 1).iter().map(|m| m.to).count(), 0);
 
     expected_movies.insert(Point::new(1, 2));
 
-    *data_holder.board.cell_mut(1, 2) = Figure::new(NONE, Color::NONE);
-    *data_holder.board.cell_mut(1, 3) = Figure::new(PAWN, BLACK);
+    *data_holder.board.cell_mut(1, 2) = Figure::new(NONE, Color::NONE, false);
+    *data_holder.board.cell_mut(1, 3) = Figure::new(PAWN, BLACK, false);
 
     let movies: HashSet<Point> = data_holder.generate_figure_movies(1, 1).iter().map(|m| m.to).collect();
     assert_eq!(movies, expected_movies);
@@ -185,8 +185,8 @@ fn test_pawn_first_moves_with_let() {
 #[test]
 fn test_is_movement_list_descending_sort() {
     let mut data_holder = DataHolder::new();
-    *data_holder.board.cell_mut(1, 1) = Figure::new(QUEEN, WHITE);
-    *data_holder.board.cell_mut(1, 6) = Figure::new(PAWN, BLACK);
+    *data_holder.board.cell_mut(1, 1) = Figure::new(QUEEN, WHITE, false);
+    *data_holder.board.cell_mut(1, 6) = Figure::new(PAWN, BLACK, false);
 
     data_holder.generate_figure_movies(1, 1);
     data_holder.sort_moves();

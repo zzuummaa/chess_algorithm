@@ -81,6 +81,10 @@ impl Figure {
     pub fn is_flag_set(&self) -> bool {
         (self.0 & 16) == 16
     }
+
+    pub fn set_flag(&mut self) {
+        self.0 += 16
+    }
 }
 
 impl Display for Figure {
