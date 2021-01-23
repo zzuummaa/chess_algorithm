@@ -1,10 +1,10 @@
 use crate::board::ByteBoard;
-use crate::figure_list::{FigurePointerList, LinkedNodeRestoreInfo, PointLinkedNode};
-use crate::movement::{MoveList, MoveGenerator, Move};
+use crate::figure_list::{FigurePointerList, LinkedNodeCursor};
+use crate::movement::{MoveList, MoveGenerator, Move, MoveType};
 use crate::figure::{Color, W_INFINITY, Figure};
 use crate::figure::Color::{WHITE, BLACK};
 use crate::point::Point;
-use crate::figure::Rank::KING;
+use crate::figure::Rank::{KING, QUEEN};
 use crate::score::*;
 
 pub struct BoardDataHolder {
@@ -23,7 +23,37 @@ pub struct BoardController<'a> {
     pub position_counter: i32
 }
 
-type MoveInfo = (Figure, *mut PointLinkedNode, LinkedNodeRestoreInfo, Move);
+#[derive(Default)]
+pub struct PointInfo {
+    figure: Figure,
+    point: Point,
+    cursor: LinkedNodeCursor,
+}
+
+impl PointInfo {
+    pub fn new(point: &Point, board_controller: &mut BoardController) -> Self {
+        let mut info = PointInfo::default();
+        info.point = *point;
+
+        info.figure = *board_controller.board.point(*point);
+
+        let node_iter =
+            if info.figure.color() == board_controller.friend_color {
+                board_controller.friend_list.node_iter()
+            } else if info.figure.color() == board_controller.enemy_color {
+                board_controller.enemy_list.node_iter()
+            } else {
+                return info;
+            };
+
+        info.cursor = node_iter
+            .skip_while(|lnc| lnc.point() != *point)
+            .next()
+            .expect("Point should be in list");
+
+        return info;
+    }
+}
 
 impl<'a> BoardController<'a> {
     #[inline]
@@ -53,26 +83,42 @@ impl<'a> BoardController<'a> {
         move_list.iter().find(|m| **m == *movement).is_some()
     }
 
-    pub fn make_move(&mut self, movement: &Move) -> MoveInfo {
-        let to_figure = self.board.make_move(movement);
-        let friend_list_restore_info = self.friend_list.make_move(movement);
+    pub fn make_move(&mut self, movement: &Move) -> (PointInfo, PointInfo) {
+        let mut from_info = PointInfo::new(&movement.from, self);
+        let mut to_info = PointInfo::new(&movement.to, self);
 
-        let mut enemy_list_restore_info = LinkedNodeRestoreInfo::default();
-        if to_figure.color() == self.enemy_color {
-            enemy_list_restore_info = self.enemy_list.remove(movement.to);
+        match movement.m_type {
+            MoveType::SIMPLE => {
+                from_info.cursor.point_set(movement.to);
+                if self.board.point_mut(movement.to).color() == self.enemy_color {
+                    to_info.cursor.remove();
+                }
+                *self.board.point_mut(movement.to) = *self.board.point_mut(movement.from);
+                *self.board.point_mut(movement.from) = Figure::empty();
+
+            }
+            MoveType::SWAP => {
+                from_info.cursor.point_set(movement.to);
+                to_info.cursor.point_set(movement.from);
+                self.board.swap(movement.from, movement.to);
+            }
+            MoveType::TRANSFORM => {
+                let f = *self.board.point(movement.from);
+                *self.board.point_mut(movement.from) = Figure::empty();
+                *self.board.point_mut(movement.to) = Figure::new(QUEEN, f.color(), false);
+            }
         }
 
-        (to_figure, friend_list_restore_info, enemy_list_restore_info, *movement)
+        (from_info, to_info)
     }
 
-    pub fn unmake_move(&mut self, move_info: MoveInfo) {
-        self.board.unmake_move(&move_info.3, move_info.0);
-        self.friend_list.unmake_move(&move_info.3, move_info.1);
-
-        if move_info.0.color() == self.enemy_color {
-            self.enemy_list.restore(move_info.2);
-            // enemy_list.restore(movement.to);
-        }
+    pub fn unmake_move(&mut self, mut move_info: (PointInfo, PointInfo)) {
+        move_info.0.cursor.restore();
+        move_info.1.cursor.restore();
+        move_info.0.cursor.point_set(move_info.0.point);
+        move_info.1.cursor.point_set(move_info.1.point);
+        *self.board.point_mut(move_info.0.point) = move_info.0.figure;
+        *self.board.point_mut(move_info.1.point) = move_info.1.figure;
     }
 
     pub fn pass_move_to_enemy(&mut self) {
@@ -99,12 +145,8 @@ impl<'a> BoardController<'a> {
         for movement in move_list.iter() {
             let move_info = self.make_move(movement);
 
-            // match enemy_list.iter().find(|p| self.board.point(*p).rank() == NONE) {
-            //     None => {}
-            //     Some(p) => {
-            //         unreachable!("{}", p)
-            //     }
-            // }
+            // println!("{}", self.board);
+            // println!();
 
             self.pass_move_to_enemy();
             let cur_score = - self.min_max_simple(depth - 1).0;

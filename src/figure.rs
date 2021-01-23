@@ -2,6 +2,7 @@
 
 use std::fmt;
 use std::fmt::{Display, Formatter};
+use crate::figure::Rank::NONE;
 
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -56,7 +57,7 @@ impl From<u8> for Color {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Default, Copy, Clone, Debug)]
 pub struct Figure(u8);
 
 impl Figure {
@@ -64,6 +65,10 @@ impl Figure {
         Figure {
             0: (rank as u8 + color as u8 + ((flag as u8) << 4)),
         }
+    }
+
+    pub fn empty() -> Figure {
+        Figure::new(NONE, Color::NONE, false)
     }
 
     pub fn rank(&self) -> Rank {
@@ -82,8 +87,10 @@ impl Figure {
         (self.0 & 16) == 16
     }
 
-    pub fn set_flag(&mut self) {
-        self.0 += 16
+    pub fn set_flag(&self) -> Self {
+        let mut changed_self = *self;
+        changed_self.0 += 16;
+        return changed_self;
     }
 }
 

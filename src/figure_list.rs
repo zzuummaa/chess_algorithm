@@ -12,6 +12,7 @@ use crate::board::*;
 use crate::figure::*;
 use crate::movement::Move;
 use crate::point::*;
+use std::ptr::null_mut;
 
 #[derive(Copy, Clone)]
 pub struct PointArrayNode {
@@ -43,14 +44,60 @@ impl PointLinkedNode {
     }
 }
 
-pub struct LinkedNodeRestoreInfo {
+pub struct LinkedNodeCursor {
+    first: *mut *mut PointLinkedNode,
     prev: *mut PointLinkedNode,
-    cur: *mut PointLinkedNode,
+    pub(crate) cur: *mut PointLinkedNode
 }
 
-impl Default for LinkedNodeRestoreInfo {
+impl Default for LinkedNodeCursor {
     fn default() -> Self {
-        LinkedNodeRestoreInfo { prev: ptr::null_mut(), cur: ptr::null_mut() }
+        LinkedNodeCursor {
+            first: null_mut(),
+            prev: null_mut(),
+            cur: null_mut()
+        }
+    }
+}
+
+impl LinkedNodeCursor {
+    pub fn remove(&mut self) {
+        let cur = unsafe { self.cur.as_ref() }.unwrap();
+        match unsafe { self.prev.as_mut() } {
+            None => {
+                let first = unsafe { self.first.as_mut() }.unwrap();
+                *first = cur.next;
+            }
+            Some(prev) => {
+                prev.next = cur.next;
+            }
+        }
+    }
+
+    pub fn restore(&mut self) {
+        match unsafe { self.prev.as_mut() } {
+            None => {
+                match unsafe { self.first.as_mut() } {
+                    None => return,
+                    Some(first) => *first = self.cur,
+                }
+            }
+            Some(prev) => {
+                prev.next = self.cur;
+            }
+        }
+    }
+
+    pub fn point_set(&mut self, point: Point) {
+        match unsafe { self.cur.as_mut() } {
+            None => {}
+            Some(cur) => cur.point = point,
+        }
+    }
+
+    pub fn point(&self) -> Point {
+        let cur = unsafe { self.cur.as_ref() }.unwrap();
+        cur.point
     }
 }
 
@@ -75,18 +122,26 @@ impl Iterator for PointLinkedNodeIterator {
 
 #[derive(Copy, Clone)]
 pub struct LinkedNodeIterator {
+    first: *mut *mut PointLinkedNode,
+    prev: *mut PointLinkedNode,
     cur: *mut PointLinkedNode
 }
 
 impl Iterator for LinkedNodeIterator {
-    type Item = &'static mut PointLinkedNode;
+    type Item = LinkedNodeCursor;
 
     fn next(&mut self) -> Option<Self::Item> {
         match unsafe { self.cur.as_mut() } {
             None => None,
             Some(cur) => {
+                let cursor = LinkedNodeCursor {
+                    first: self.first,
+                    prev: self.prev,
+                    cur: self.cur
+                };
+                self.prev = self.cur;
                 self.cur = cur.next;
-                Some(cur)
+                Some(cursor)
             }
         }
     }
@@ -281,66 +336,66 @@ impl FigurePointerList {
         self.first = &mut self.buffer[0];
     }
 
-    pub fn make_move(&mut self, movement: &Move) -> *mut PointLinkedNode {
-        let node = self.node_iter()
-            .find(|n| n.point == movement.from)
-            .unwrap();
-
-        node.point = movement.to;
-        return node;
-    }
-
-    pub fn unmake_move(&mut self, movement: &Move, node: *mut PointLinkedNode) {
-        unsafe { (*node).point = movement.from; }
-    }
-
-    pub fn remove(&mut self, point: Point) -> LinkedNodeRestoreInfo {
-        let mut restore_info = LinkedNodeRestoreInfo::default();
-
-        for node in self.node_iter() {
-            restore_info.prev = restore_info.cur;
-            restore_info.cur = node;
-            if node.point == point {
-                break;
-            }
-        }
-
-        if restore_info.cur.is_null() { return restore_info; }
-
-        if restore_info.prev.is_null() {
-            self.first = unsafe { (*restore_info.cur).next }
-        } else {
-            unsafe {
-                (*restore_info.prev).next = (*restore_info.cur).next;
-            }
-        }
-        return restore_info;
-    }
-
-    pub fn restore(&mut self, restore_info: LinkedNodeRestoreInfo) {
-        let cur = match unsafe { restore_info.cur.as_mut() } {
-            None => return,
-            Some(cur) => cur
-        };
-
-        match unsafe { restore_info.prev.as_mut() } {
-            None => {
-                cur.next = self.first;
-                self.first = cur;
-            }
-            Some(prev) => {
-                cur.next = prev.next;
-                prev.next = cur;
-            }
-        }
-    }
+    // pub fn make_move(&mut self, movement: &Move) -> LinkedNodeCursor {
+    //     let node = self.node_iter()
+    //         .find(|n| n.point == movement.from)
+    //         .unwrap();
+    //
+    //     node.point = movement.to;
+    //     return LinkedNodeCursor { first: &mut self.first, prev: null_mut(), cur: node };
+    // }
+    //
+    // pub fn unmake_move(&mut self, movement: &Move, node: LinkedNodeCursor) {
+    //     unsafe { (*node.cur).point = movement.from; }
+    // }
+    //
+    // pub fn remove(&mut self, point: Point) -> LinkedNodeCursor {
+    //     let mut restore_info = LinkedNodeCursor::default();
+    //
+    //     for node in self.node_iter() {
+    //         restore_info.prev = restore_info.cur;
+    //         restore_info.cur = node;
+    //         if node.point == point {
+    //             break;
+    //         }
+    //     }
+    //
+    //     if restore_info.cur.is_null() { return restore_info; }
+    //
+    //     if restore_info.prev.is_null() {
+    //         self.first = unsafe { (*restore_info.cur).next }
+    //     } else {
+    //         unsafe {
+    //             (*restore_info.prev).next = (*restore_info.cur).next;
+    //         }
+    //     }
+    //     return restore_info;
+    // }
+    //
+    // pub fn restore(&mut self, restore_info: LinkedNodeCursor) {
+    //     let cur = match unsafe { restore_info.cur.as_mut() } {
+    //         None => return,
+    //         Some(cur) => cur
+    //     };
+    //
+    //     match unsafe { restore_info.prev.as_mut() } {
+    //         None => {
+    //             cur.next = self.first;
+    //             self.first = cur;
+    //         }
+    //         Some(prev) => {
+    //             cur.next = prev.next;
+    //             prev.next = cur;
+    //         }
+    //     }
+    // }
 
     pub fn iter(&self) -> PointLinkedNodeIterator {
         PointLinkedNodeIterator { cur : self.first }
     }
 
-    pub fn node_iter(&self) -> LinkedNodeIterator {
-        LinkedNodeIterator { cur : self.first }
+    pub fn node_iter(&mut self) -> LinkedNodeIterator {
+        LinkedNodeIterator { first: &mut self.first, prev: null_mut(), cur : self.first }
     }
 }
 

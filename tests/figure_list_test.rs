@@ -6,7 +6,7 @@ use chess_algorithm::board::*;
 use chess_algorithm::figure::*;
 use chess_algorithm::figure_list::*;
 use chess_algorithm::figure::Color::{WHITE, NONE};
-use chess_algorithm::movement::Move;
+
 use chess_algorithm::point::Point;
 
 #[test]
@@ -32,13 +32,14 @@ fn test_several_iterators() {
     // let movement_info = list.make_move(&movement);
     let removed_figure = *board.point(point);
     *board.point_mut(point) = Figure::new(Rank::NONE, NONE, false);
-    let restore_info = list.remove(point);
+    let mut cursor = list.node_iter().skip_while(|lnc| lnc.point() != point).next().unwrap();
+    cursor.remove();
 
     assert_eq!(list.node_iter().count(), 15);
     assert_eq!(list.iter().map(|p| board.point(p).weight()).sum::<i32>(), 130000);
 
     // FigureList::unmake_move(&movement, movement_info);
-    list.restore(restore_info);
+    cursor.restore();
     *board.point_mut(point) = removed_figure;
 
     assert_eq!(list.node_iter().count(), 16);

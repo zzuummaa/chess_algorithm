@@ -1,11 +1,9 @@
 #![allow(dead_code)]
 
 use crate::point::*;
-use crate::movement::Move;
 use crate::figure::*;
 use std::fmt;
 use std::fmt::{Display, Formatter, Debug};
-use crate::figure::Rank::NONE;
 
 #[derive(Debug, Copy, Clone)]
 pub struct ByteBoard {
@@ -30,18 +28,6 @@ impl ByteBoard {
         board
     }
 
-    pub fn make_move(&mut self, movement: &Move) -> Figure {
-        let old_to = *self.point(movement.to);
-        *self.point_mut(movement.to) = *self.point(movement.from);
-        *self.point_mut(movement.from) = Figure::new(NONE, Color::NONE, false);
-        return old_to;
-    }
-
-    pub fn unmake_move(&mut self, movement: &Move, figure: Figure) {
-        *self.point_mut(movement.from) = *self.point(movement.to);
-        *self.point_mut(movement.to) = figure;
-    }
-
     pub fn cell_mut(&mut self, literal: isize, number: isize) -> &mut Figure {
         debug_assert!(literal < 12 && literal >= -4);
         debug_assert!(number < 12 && number >= -4);
@@ -60,6 +46,12 @@ impl ByteBoard {
 
     pub fn point_mut(&mut self, point: Point) -> &mut Figure {
         self.cell_mut(point.x() as isize, point.y() as isize)
+    }
+
+    pub fn swap(&mut self, p1: Point, p2: Point) {
+        let f = *self.point(p1);
+        *self.point_mut(p1) = *self.point(p2);
+        *self.point_mut(p2) = f;
     }
 
     pub fn cell_iter(&self) -> impl Iterator<Item = (Point, &Figure)> {
