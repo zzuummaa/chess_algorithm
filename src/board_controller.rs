@@ -6,6 +6,7 @@ use crate::figure::Color::{WHITE, BLACK};
 use crate::point::Point;
 use crate::figure::Rank::{KING, QUEEN};
 use crate::score::*;
+use crate::movement::MoveType::SIMPLE;
 
 pub struct BoardDataHolder {
     // TODO remove pub for preventing board changes
@@ -138,11 +139,15 @@ impl<'a> BoardController<'a> {
         // unsafe { println!("{:?}", (*friend_list.first).point); }
         let move_list =
             self.friend_movies();
+
+        if let Some(king_eat_move) = self.find_king_eat_move(&move_list) {
+            return (W_INFINITY, Some(*king_eat_move));
+        }
             // MoveList::default();
         // unsafe { println!("{:?}", (*friend_list.first).point); }
 
         let mut best_score = - W_INFINITY;
-        let mut best_move: Option<Move> = None;
+        let mut best_move: Option<Move> = move_list.iter().next().copied();
         for movement in move_list.iter() {
             let move_info = self.make_move(movement);
 
@@ -175,8 +180,15 @@ impl<'a> BoardController<'a> {
         let mut move_list = self.friend_movies();
         move_list.sort_by(self.board, simple_positional_fn);
 
+        if let Some(first_move) = move_list.iter().next() {
+            let f = self.board.point(first_move.to);
+            if f.rank() == KING && f.color() == self.enemy_color && first_move.m_type == SIMPLE {
+                return (W_INFINITY, Some(*first_move));
+            }
+        }
+
         let mut best_score = - W_INFINITY;
-        let mut best_move: Option<Move> = None;
+        let mut best_move: Option<Move> = move_list.iter().next().copied();
         for movement in move_list.iter() {
             let move_info = self.make_move(movement);
             self.pass_move_to_enemy();
@@ -203,6 +215,15 @@ impl<'a> BoardController<'a> {
             let f = self.board.point(*p);
             f.rank() == KING && f.color() == self.friend_color
         }).is_some()
+    }
+
+    pub fn find_king_eat_move<'b>(&self, move_list: &'b MoveList) -> Option<&'b Move> {
+        move_list.iter()
+            .filter(|m| m.m_type == SIMPLE)
+            .find(|m| {
+                let f = self.board.point(m.to);
+                f.rank() == KING && f.color() == self.enemy_color
+            })
     }
 }
 

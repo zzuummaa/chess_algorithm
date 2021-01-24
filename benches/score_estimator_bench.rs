@@ -7,11 +7,12 @@ use test::Bencher;
 use chess_algorithm::board::ByteBoard;
 use chess_algorithm::figure::Color::*;
 use chess_algorithm::board_controller::*;
+use chess_algorithm::figure::W_INFINITY;
 
 #[bench]
 fn bench_node_iterations(b: &mut Bencher) {
     let mut board_data_holder = BoardDataHolder::new(&ByteBoard::default());
     b.iter(|| {
-        board_data_holder.controller(WHITE).min_max_simple(5);
+        board_data_holder.controller(WHITE).alpha_betta(5, -(W_INFINITY - 1), (W_INFINITY + 1));
     });
 }
