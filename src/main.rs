@@ -37,9 +37,9 @@ impl MoveSource for ConsoleMoveSource {
                 .read_line(&mut self.user_input)
                 .expect("Failed to read line");
 
-            let m = match Move::from_string(&self.user_input.trim_end().to_lowercase()) {
-                None => continue,
-                Some(m) => m
+            let m = match Move::from_string(&self.user_input.trim_end().to_uppercase()) {
+                Err(_) => continue,
+                Ok(m) => m
             };
 
             if controller.is_valid_move(&m) {
@@ -110,6 +110,98 @@ fn read_move_source(color: Color) -> Box<dyn MoveSource> {
     }
 }
 
+fn load_board(db_instance: &mut DataBaseInstance) -> (ByteBoard, Game, MoveRecord) {
+    loop {
+        print!("Load game or start new: ");
+        io::stdout().flush().unwrap();
+
+        let mut user_input = String::new();
+
+        io::stdin()
+            .read_line(&mut user_input)
+            .expect("Failed to read line");
+
+        if user_input.trim().is_empty() {
+            let game = db_instance.add_game(Game::now()).unwrap();
+            let record = MoveRecord::new(&game);
+            return (
+                ByteBoard::default(),
+                game,
+                record
+            );
+        }
+
+        let id = match user_input.trim().parse::<i32>() {
+            Ok(id) => id,
+            Err(e) => {
+                println!("{}", e);
+                continue
+            }
+        };
+
+        let game = match db_instance.find_game(id) {
+            Ok(g) => g,
+            Err(e) => {
+                println!("{}", e);
+                continue
+            }
+        };
+
+        let move_records_result = match db_instance.find_moves(&game) {
+            Ok(records) => records,
+            Err(e) => {
+                println!("{}", e);
+                continue
+            }
+        };
+
+        let moves_result = move_records_result.iter()
+            .map(|r| r.to_move())
+            .collect::<Result<Vec<Move>, _>>();
+
+        let move_records = match moves_result {
+            Ok(records) => records,
+            Err(e) => {
+                println!("{}", e);
+                continue
+            }
+        };
+
+        println!("===================================");
+        println!("=           Load game             =");
+        println!("===================================");
+        println!();
+
+        let mut holder = BoardDataHolder::new(&ByteBoard::default());
+
+        move_records.iter().enumerate().for_each(|r| {
+            let c =
+                if r.0 % 2 == 0 {
+                    WHITE
+                } else {
+                    BLACK
+                };
+
+            let mut controller = holder.controller(c);
+            if !controller.is_valid_move(r.1) { unreachable!("{:?} move: {}", c, r.1) };
+            controller.make_move(r.1);
+
+            println!();
+            println!("{}", &holder.board);
+            println!("{:?} move: {}", c, r.1);
+        });
+
+        let mut move_records_result = move_records_result;
+        let last_record = if move_records_result.is_empty() {
+            MoveRecord::new(&game)
+        } else {
+            move_records_result.remove(move_records_result.len() - 1)
+        };
+
+        return (holder.board, game, last_record);
+    }
+}
+
 fn main() {
     println!("===================================");
     println!("= Chess algorithm console version =");
@@ -124,11 +216,11 @@ fn main() {
     let mut white_source: Box<dyn MoveSource> = read_move_source(WHITE);
     let mut black_source: Box<dyn MoveSource> = read_move_source(BLACK);
 
-    let mut board_data_holder = BoardDataHolder::new(&ByteBoard::default());
-
     let mut db_instance = DataBaseInstance::default();
-    let game = db_instance.add_game(Game::now()).unwrap();
-    let mut move_record = MoveRecord::new(&game);
+    let (board, _, mut move_record) = load_board(&mut db_instance);
+
+    let mut board_data_holder = BoardDataHolder::new(&board);
+    drop(board);
 
     println!();
     println!("===================================");

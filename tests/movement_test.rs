@@ -11,6 +11,7 @@ use std::collections::HashSet;
 use chess_algorithm::point::Point;
 use chess_algorithm::board_controller::BoardDataHolder;
 use chess_algorithm::score::simple_positional_fn;
+use chess_algorithm::movement::MoveType::TRANSFORM;
 
 struct DataHolder {
     board: ByteBoard,
@@ -179,6 +180,28 @@ fn test_pawn_first_moves_with_let() {
     *data_holder.board.cell_mut(1, 3) = Figure::new(PAWN, BLACK, false);
 
     let movies: HashSet<Point> = data_holder.generate_figure_movies(1, 1).iter().map(|m| m.to).collect();
+    assert_eq!(movies, expected_movies);
+}
+
+#[test]
+fn test_pawn_transform() {
+    let mut expected_movies = HashSet::new();
+    let from_p = Point::new(1, 6);
+
+    expected_movies.insert(Move {
+        from: from_p,
+        to: Point::new(1, 7),
+        m_type: TRANSFORM
+    });
+
+    let mut data_holder = DataHolder::new();
+    *data_holder.board.cell_mut(1, 6) = Figure::new(PAWN, WHITE, false);
+    let movies: HashSet<Move> = data_holder
+        .generate_figure_movies(from_p.x(), from_p.y())
+        .iter()
+        .map(|m| *m)
+        .collect();
+
     assert_eq!(movies, expected_movies);
 }
 

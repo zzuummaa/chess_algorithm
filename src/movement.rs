@@ -10,10 +10,9 @@ use crate::figure::Rank::OUT;
 use crate::figure_list::FigurePointerList;
 use crate::point::Point;
 use std::mem::MaybeUninit;
-use std::hint::unreachable_unchecked;
 
 #[repr(u8)]
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
+#[derive(Debug, Display, Eq, PartialEq, Hash, Copy, Clone)]
 pub enum MoveType {
     SIMPLE,
     SWAP,
@@ -27,34 +26,15 @@ pub struct Move {
     pub m_type: MoveType
 }
 
-fn sub_char(a: char, b: char) -> i8 {
-    a as i8 - b as i8
-}
-
 impl Move {
-    pub fn from_string(str: &str) -> Option<Self> {
-        if str.len() != 4 { return None }
+    pub fn from_string(str: &str) -> Result<Self, fmt::Error> {
+        if str.len() != 4 { return Err(fmt::Error) }
 
         let mut m = Move::default();
-        let parse_count = str.char_indices().filter(|c| {
-            match c.0 {
-                0..4 => {
-                    match c.0 {
-                        0 => if c.1 >= 'a' && c.1 <= 'h' { m.from = m.from + Point::new(-sub_char(c.1, 'h'), 0) }
-                        1 => if c.1 >= '1' && c.1 <= '8' { m.from = m.from + Point::new(0, sub_char(c.1, '1')) }
-                        2 => if c.1 >= 'a' && c.1 <= 'h' { m.to = m.to + Point::new(-sub_char(c.1, 'h'), 0) }
-                        3 => if c.1 >= '1' && c.1 <= '8' { m.to = m.to + Point::new(0, sub_char(c.1, '1')) }
-                        _ => unsafe { unreachable_unchecked() }
-                    }
-                    true
-                }
-                _ => false
-            }
-        }).count();
+        m.from = Point::from_string(&str[0..2])?;
+        m.to = Point::from_string(&str[2..4])?;
 
-        if parse_count != 4 { return None }
-
-        return Some(m)
+        return Ok(m)
     }
 }
 
@@ -199,7 +179,11 @@ impl<'a> MoveGenerator<'a> {
 
                 let eat_p = p + Point::new(0, mult);
                 if self.board.point(eat_p).rank() == Rank::NONE {
-                    move_list.push(Move { from: p, to: eat_p, m_type: MoveType::SIMPLE });
+                    if eat_p.y() == 7 || eat_p.y() == 0 {
+                        move_list.push(Move { from: p, to: eat_p, m_type: MoveType::TRANSFORM });
+                    } else {
+                        move_list.push(Move { from: p, to: eat_p, m_type: MoveType::SIMPLE });
+                    }
 
                     if p.y() == 1i8 && mult == 1 || p.y() == 6i8 && mult == -1 {
                         let eat_p = p + Point::new(0, mult * 2);
