@@ -167,10 +167,10 @@ fn load_board(db_instance: &mut DataBaseInstance) -> (ByteBoard, Game, MoveRecor
             }
         };
 
+        println!();
         println!("===================================");
         println!("=           Load game             =");
         println!("===================================");
-        println!();
 
         let mut holder = BoardDataHolder::new(&ByteBoard::default());
 
@@ -228,6 +228,30 @@ fn main() {
     println!("===================================");
     println!();
     println!("{}", &board_data_holder.board);
+
+    if move_record.move_number % 2 == 0 {
+        let timer = Instant::now();
+        let black_move = black_source.next(&mut board_data_holder.controller(BLACK));
+        if black_move.is_none() {
+            println!("Black movements unavailable. Likely it's draw...");
+            return;
+        }
+        board_data_holder.controller(BLACK).make_move(&black_move.unwrap());
+        println!();
+        println!("{}", &board_data_holder.board);
+        println!("black move: {}, {} sec, {} mln positions", black_move.unwrap(), timer.elapsed().as_secs_f32(), black_source.position_counter() as f32 / 1000_000f32);
+
+        move_record = move_record.to_next(&black_move.unwrap());
+        db_instance.add_move(&move_record).unwrap();
+
+        if !board_data_holder.controller(WHITE).is_king_alive() {
+            println!();
+            println!("===================================");
+            println!("=       Black side is win!        =");
+            println!("===================================");
+            return;
+        }
+    }
 
     loop {
         let timer = Instant::now();
