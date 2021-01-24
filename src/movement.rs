@@ -88,8 +88,8 @@ impl MoveList {
         self.buffer[0..self.len].sort_by(|a, b| {
             let a_f = *board.point(a.from);
             let b_f = *board.point(b.from);
-            let a_score = positional_fn(a.to, a_f) - positional_fn(a.from, a_f) + board.point(a.to).weight();
-            let b_score = positional_fn(b.to, b_f) - positional_fn(b.from, b_f) + board.point(b.to).weight();
+            let a_score = 10 * board.point(a.to).weight() - a_f.weight();
+            let b_score = 10 * board.point(b.to).weight() - b_f.weight();
             b_score.cmp(&a_score)
         });
     }

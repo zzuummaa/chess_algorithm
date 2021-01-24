@@ -121,13 +121,13 @@ impl Display for ByteBoard {
         let (s, e) = (0isize, 8isize);
         for n in (s..e).rev() {
             write!(f, "{} ", n + 1)?;
-            for l in s..e {
+            for l in (s..e).rev() {
                 write!(f, "{} ", self.cell(l, n))?;
             }
             write!(f, "\n")?;
         }
         write!(f, "  ")?;
-        for l in (s..e).rev() {
+        for l in s..e {
             write!(f, "{}  ", (l as u8 + 65) as char)?;
         }
         Ok(())

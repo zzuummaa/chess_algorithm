@@ -209,9 +209,10 @@ fn test_pawn_transform() {
 fn test_is_movement_list_descending_sort() {
     let mut data_holder = DataHolder::new();
     *data_holder.board.cell_mut(1, 1) = Figure::new(QUEEN, WHITE, false);
+    *data_holder.board.cell_mut(2, 5) = Figure::new(PAWN, WHITE, false);
     *data_holder.board.cell_mut(1, 6) = Figure::new(PAWN, BLACK, false);
 
-    data_holder.generate_figure_movies(1, 1);
+    data_holder.generate_white_movies();
     data_holder.sort_moves();
 
     let movies_scores: Vec<_> = data_holder.move_list.iter().map(|m| {
@@ -224,5 +225,5 @@ fn test_is_movement_list_descending_sort() {
         println!("{}, {} -> {}, d_score: {}", m, data_holder.board.point(m.from), data_holder.board.point(m.to), s);
     });
 
-    assert!(movies_scores.iter().map(|(m, s)| s).is_sorted_by(|a, b| Some(b.cmp(a))));
+    assert!(movies_scores.iter().map(|(_, s)| s).is_sorted_by(|a, b| Some(b.cmp(a))));
 }

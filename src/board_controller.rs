@@ -140,9 +140,9 @@ impl<'a> BoardController<'a> {
         let move_list =
             self.friend_movies();
 
-        if let Some(king_eat_move) = self.find_king_eat_move(&move_list) {
-            return (W_INFINITY, Some(*king_eat_move));
-        }
+        // if let Some(king_eat_move) = self.find_king_eat_move(&move_list) {
+        //     return (W_INFINITY, Some(*king_eat_move));
+        // }
             // MoveList::default();
         // unsafe { println!("{:?}", (*friend_list.first).point); }
 
@@ -180,12 +180,12 @@ impl<'a> BoardController<'a> {
         let mut move_list = self.friend_movies();
         move_list.sort_by(self.board, simple_positional_fn);
 
-        if let Some(first_move) = move_list.iter().next() {
-            let f = self.board.point(first_move.to);
-            if f.rank() == KING && f.color() == self.enemy_color && first_move.m_type == SIMPLE {
-                return (W_INFINITY, Some(*first_move));
-            }
-        }
+        // if let Some(first_move) = move_list.iter().next() {
+        //     let f = self.board.point(first_move.to);
+        //     if f.rank() == KING && f.color() == self.enemy_color && first_move.m_type == SIMPLE {
+        //         return (W_INFINITY, Some(*first_move));
+        //     }
+        // }
 
         let mut best_score = - W_INFINITY;
         let mut best_move: Option<Move> = move_list.iter().next().copied();
