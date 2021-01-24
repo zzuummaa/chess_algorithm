@@ -57,7 +57,7 @@ impl From<u8> for Color {
     }
 }
 
-#[derive(Default, Copy, Clone, Debug)]
+#[derive(Default, Copy, Clone, Debug, PartialEq)]
 pub struct Figure(u8);
 
 impl Figure {

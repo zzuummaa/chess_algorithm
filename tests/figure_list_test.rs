@@ -11,8 +11,8 @@ use chess_algorithm::point::Point;
 
 #[test]
 fn test_fill_is_descending_sort() {
-    let mut board = ByteBoard::default();
-    let mut list = FigurePointerList::new(&board, WHITE);
+    let board = ByteBoard::default();
+    let list = FigurePointerList::new(&board, WHITE);
     assert!(list.iter().is_sorted_by(|a, b| {
         let pa = board.point(*a);
         let pb = board.point(*b);

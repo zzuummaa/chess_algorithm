@@ -13,6 +13,15 @@ pub struct ByteBoard {
     cells: [[Figure; 16]; 16],
 }
 
+impl PartialEq for ByteBoard {
+    fn eq(&self, other: &ByteBoard) -> bool {
+        self.cells.iter()
+            .flatten()
+            .zip(other.cells.iter().flatten())
+            .all(|(a, b)| a == b)
+    }
+}
+
 impl ByteBoard {
     pub fn empty() -> Self {
         let mut board = ByteBoard {

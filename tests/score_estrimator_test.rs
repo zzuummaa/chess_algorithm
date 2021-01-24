@@ -1,6 +1,6 @@
 use chess_algorithm::board::ByteBoard;
 use chess_algorithm::figure::Color::WHITE;
-use chess_algorithm::board_controller::{BoardController, BoardDataHolder};
+use chess_algorithm::board_controller::BoardDataHolder;
 use chess_algorithm::figure::Figure;
 use chess_algorithm::figure::Rank::PAWN;
 

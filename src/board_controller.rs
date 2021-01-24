@@ -10,8 +10,8 @@ use crate::score::*;
 pub struct BoardDataHolder {
     // TODO remove pub for preventing board changes
     pub board: ByteBoard,
-    white_list: FigurePointerList,
-    black_list: FigurePointerList,
+    pub white_list: FigurePointerList,
+    pub black_list: FigurePointerList,
 }
 
 pub struct BoardController<'a> {
@@ -25,9 +25,9 @@ pub struct BoardController<'a> {
 
 #[derive(Default)]
 pub struct PointInfo {
-    figure: Figure,
-    point: Point,
-    cursor: LinkedNodeCursor,
+    pub figure: Figure,
+    pub point: Point,
+    pub cursor: LinkedNodeCursor,
 }
 
 impl PointInfo {
@@ -103,6 +103,7 @@ impl<'a> BoardController<'a> {
                 self.board.swap(movement.from, movement.to);
             }
             MoveType::TRANSFORM => {
+                from_info.cursor.point_set(movement.to);
                 let f = *self.board.point(movement.from);
                 *self.board.point_mut(movement.from) = Figure::empty();
                 *self.board.point_mut(movement.to) = Figure::new(QUEEN, f.color(), false);
