@@ -1,11 +1,11 @@
 use crate::board::ByteBoard;
-use crate::figure_list::{FigurePointList, LinkedNodeCursor};
-use crate::movement::{MoveList, MoveGenerator, Move, MoveType};
-use crate::figure::{Color, Figure};
-use crate::figure::Color::{WHITE, BLACK};
-use crate::point::Point;
+use crate::figure::Color::{BLACK, WHITE};
 use crate::figure::Rank::{KING, QUEEN};
+use crate::figure::{Color, Figure};
+use crate::figure_list::{FigurePointList, LinkedNodeCursor};
 use crate::movement::MoveType::SIMPLE;
+use crate::movement::{Move, MoveGenerator, MoveList, MoveType};
+use crate::point::Point;
 
 pub struct BoardDataHolder {
     // TODO remove pub for preventing board changes

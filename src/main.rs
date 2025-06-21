@@ -213,7 +213,7 @@ fn main() {
     let (board, _, mut move_record) = load_board(&mut db_instance);
 
     let mut board_data_holder = BoardDataHolder::new(&board);
-    drop(board);
+    let _ = board;
 
     println!();
     println!("===================================");
