@@ -7,7 +7,7 @@ use chess_algorithm::board::ByteBoard;
 use chess_algorithm::figure::{Figure, Color};
 use chess_algorithm::figure::Rank::{KING, PAWN, QUEEN, ROOK, NONE};
 use chess_algorithm::figure::Color::{WHITE, BLACK};
-use chess_algorithm::figure_list::{FigurePointerList};
+use chess_algorithm::figure_list::{FigurePointList};
 use std::collections::HashSet;
 use chess_algorithm::point::Point;
 use chess_algorithm::board_controller::BoardDataHolder;
@@ -16,8 +16,8 @@ use chess_algorithm::movement::MoveType::TRANSFORM;
 
 struct MovementFixture {
     board: ByteBoard,
-    white_list: FigurePointerList,
-    black_list: FigurePointerList,
+    white_list: FigurePointList,
+    black_list: FigurePointList,
     move_list: MoveList
 }
 
@@ -25,8 +25,8 @@ impl MovementFixture {
     fn new() -> MovementFixture {
         MovementFixture {
             board: ByteBoard::empty(),
-            white_list: FigurePointerList::default(),
-            black_list: FigurePointerList::default(),
+            white_list: FigurePointList::default(),
+            black_list: FigurePointList::default(),
             move_list: MoveList::default()
         }
     }

@@ -7,7 +7,7 @@ use std::slice::Iter;
 use crate::board::ByteBoard;
 use crate::figure::{Color, Rank, Figure};
 use crate::figure::Rank::OUT;
-use crate::figure_list::FigurePointerList;
+use crate::figure_list::FigurePointList;
 use crate::point::Point;
 use std::mem::MaybeUninit;
 
@@ -88,8 +88,8 @@ impl MoveList {
         self.buffer[0..self.len].sort_by(|a, b| {
             let a_f = *board.point(a.from);
             let b_f = *board.point(b.from);
-            let a_score = 10 * board.point(a.to).weight() - a_f.weight();
-            let b_score = 10 * board.point(b.to).weight() - b_f.weight();
+            let a_score = board.point(a.to).weight() - a_f.weight();
+            let b_score = board.point(b.to).weight() - b_f.weight();
             b_score.cmp(&a_score)
         });
     }
@@ -108,7 +108,7 @@ impl Default for MoveList {
 
 pub struct MoveGenerator<'a> {
     pub board: &'a ByteBoard,
-    pub figures: &'a FigurePointerList,
+    pub figures: &'a FigurePointList,
 }
 
 static KING_MOVES_X: [i8; 8] = [ 0, 1, 1, 0, -1, -1, -1, 1 ];
@@ -134,7 +134,7 @@ impl<'a> Generator for MoveGenerator<'a> {
 }
 
 impl<'a> MoveGenerator<'a> {
-    pub fn new(board: &'a ByteBoard, figures: &'a FigurePointerList) -> Self {
+    pub fn new(board: &'a ByteBoard, figures: &'a FigurePointList) -> Self {
         MoveGenerator { board, figures }
     }
 

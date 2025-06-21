@@ -302,14 +302,14 @@ impl Default for FigureLinkedList {
     }
 }
 
-pub struct FigurePointerList {
+pub struct FigurePointList {
     pub nodes: Box<[PointLinkedNode; 16]>,
     pub first: *mut PointLinkedNode,
 }
 
-impl FigurePointerList {
+impl FigurePointList {
     pub fn new(board: &ByteBoard, color: Color) -> Self {
-        let mut list = FigurePointerList::default();
+        let mut list = FigurePointList::default();
         list.fill(board, color);
         return list;
     }
@@ -399,13 +399,13 @@ impl FigurePointerList {
     }
 }
 
-impl Default for FigurePointerList {
+impl Default for FigurePointList {
     fn default() -> Self {
-        FigurePointerList { nodes: Box::new([PointLinkedNode::new(); 16]), first: ptr::null_mut() }
+        FigurePointList { nodes: Box::new([PointLinkedNode::new(); 16]), first: ptr::null_mut() }
     }
 }
 
-impl Display for FigurePointerList {
+impl Display for FigurePointList {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "[")?;
         for p in self.iter() {
@@ -417,7 +417,7 @@ impl Display for FigurePointerList {
 }
 
 #[allow(unused_variables)]
-impl Debug for FigurePointerList {
+impl Debug for FigurePointList {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         Ok(())
     }

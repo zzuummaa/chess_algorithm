@@ -2,12 +2,13 @@ use std::io;
 use std::io::Write;
 
 use chess_algorithm::board::ByteBoard;
-use chess_algorithm::figure::Color::{BLACK, WHITE};
-use chess_algorithm::figure::{Color, W_INFINITY};
-use chess_algorithm::movement::Move;
-use chess_algorithm::board_controller::{BoardDataHolder, BoardController};
-use std::time::Instant;
+use chess_algorithm::board_controller::{BoardController, BoardDataHolder};
 use chess_algorithm::database::{DataBaseInstance, Game, MoveRecord};
+use chess_algorithm::figure::Color::{BLACK, WHITE};
+use chess_algorithm::figure::Color;
+use chess_algorithm::movement::Move;
+use chess_algorithm::score::{AlphaBetaSearch, MinMaxSimpleSearch, MoveSearch};
+use std::time::Instant;
 
 trait MoveSource {
     fn position_counter(&self) -> i32;
@@ -49,37 +50,29 @@ impl MoveSource for ConsoleMoveSource {
     }
 }
 
-#[derive(Default)]
-struct SimpleMinMaxMoveSource {
-    position_counter: i32
+struct AlgoMoveSource {
+    position_counter: i32,
+    move_search: Box<dyn MoveSearch>
 }
 
-impl MoveSource for SimpleMinMaxMoveSource {
+impl AlgoMoveSource {
+    fn new<T: MoveSearch + 'static>(move_search: T) -> Self {
+        Self {
+            position_counter: 0,
+            move_search : Box::new(move_search)
+        }
+    }
+}
+
+impl MoveSource for AlgoMoveSource {
     fn position_counter(&self) -> i32 {
         self.position_counter
     }
-
+    
     fn next(&mut self, controller: &mut BoardController<'_>) -> Option<Move> {
-        let movement = controller.min_max_simple(5).1;
+        let movement = self.move_search.find_best_move(controller, 5).1;
         self.position_counter = controller.position_counter;
-        return movement;
-    }
-}
-
-#[derive(Default)]
-struct AlphaBettaMoveSource {
-    position_counter: i32
-}
-
-impl MoveSource for AlphaBettaMoveSource {
-    fn position_counter(&self) -> i32 {
-        self.position_counter
-    }
-
-    fn next(&mut self, controller: &mut BoardController<'_>) -> Option<Move> {
-        let movement = controller.alpha_betta(8, - W_INFINITY, W_INFINITY).1;
-        self.position_counter = controller.position_counter;
-        return movement;
+        movement
     }
 }
 
@@ -98,8 +91,8 @@ fn read_move_source(color: Color) -> Box<dyn MoveSource> {
             Ok(n) => {
                 match n {
                     1 => break Box::new(ConsoleMoveSource::default()),
-                    2 => break Box::new(SimpleMinMaxMoveSource::default()),
-                    3 => break Box::new(AlphaBettaMoveSource::default()),
+                    2 => break Box::new(AlgoMoveSource::new(MinMaxSimpleSearch::default())),
+                    3 => break Box::new(AlgoMoveSource::new(AlphaBetaSearch::default())),
                     _ => {}
                 }
             }

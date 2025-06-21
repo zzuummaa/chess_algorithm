@@ -1,3 +1,68 @@
+//! `ByteBoard` represents a chess-like board with an extended 16x16 grid.
+//! The board primarily operates within the central 8x8 area to simulate
+//! a traditional chessboard, while the outer regions provide padding for
+//! special calculations or validations.
+//!
+//! # Fields
+//! - `cells`: A 16x16 grid of `Figure` objects, where the first index represents
+//!   the column (letters A-P) and the second index represents the row (numbers 1-16).
+//!   For example, cell `A2` corresponds to `cells[0][1]`.
+//!
+//! # Traits
+//! - `PartialEq`: Compares two boards for equality by checking if all their cells are the same.
+//! - `Copy` and `Clone`: Implements copy semantics to duplicate the board's state.
+//! - `Debug`: Implements debugging output using the `derive` macro.
+//! - `Default`: Provides an initial chess setup on the board for standard gameplay.
+//!
+//! # Methods
+//! ## Constructors
+//! - `empty() -> Self`:
+//!   Creates a board with all cells initialized to an empty `Figure` with `Rank::NONE` and `Color::NONE`.
+//!
+//! - `default() -> Self`:
+//!   Creates a board initialized with a standard chess configuration,
+//!   including pawns and special pieces such as rooks, knights, bishops, queens, and kings.
+//!
+//! ## Mutator Methods
+//! - `cell_mut(&mut self, literal: isize, number: isize) -> &mut Figure`:
+//!   Returns a mutable reference to a specific cell on the board given its (literal, number) coordinates.
+//!   The inputs are valid within the extended 16x16 bounds centered on the main 8x8 area.
+//!   **Panics** in debug mode if the inputs are out of bounds (between -4 and 11 inclusive).
+//!
+//! - `point_mut(&mut self, point: Point) -> &mut Figure`:
+//!   Returns a mutable reference to the cell specified by a `Point` object.
+//!
+//! - `swap(&mut self, p1: Point, p2: Point)`:
+//!   Swaps the figures at two specified `Point` locations.
+//!
+//! ## Accessor Methods
+//! - `cell(&self, literal: isize, number: isize) -> &Figure`:
+//!   Returns a reference to the figure at a specific (literal, number) coordinate.
+//!   Same boundary restrictions and behavior as `cell_mut()`.
+//!
+//! - `point(&self, point: Point) -> &Figure`:
+//!   Returns a read-only reference to the cell at the `Point` object's coordinates.
+//!
+//! - `cell_iter(&self) -> impl Iterator<Item = (Point, &Figure)>`:
+//!   Returns an iterator over the main 8x8 area of the board, yielding pairs of `Point` and `Figure` references.
+//!
+//! ## Display
+//! - Implements the `Display` trait to format the board as a human-readable string, 
+//!   with rows labeled 1-8 and columns labeled A-H for the main 8x8 area.
+//!   The display output may look similar to a chessboard, simplifying visualization or debugging.
+//!
+//! ## Examples
+//! ```
+//! use chess_algorithm::board::ByteBoard;
+//! use chess_algorithm::point::Point;
+//! let mut board = ByteBoard::default();
+//! println!("{}", board); // Prints the default board configuration.
+//! let point1 = Point::new(3, 1); // D2
+//! let point2 = Point::new(3, 2); // D3
+//! board.swap(point1, point2);
+//! println!("{}", board); // Prints board after swapping figures.
+//! ```
+
 #![allow(dead_code)]
 
 use crate::point::*;
@@ -9,7 +74,7 @@ use std::fmt::{Display, Formatter, Debug};
 pub struct ByteBoard {
     /// First index is letter,
     /// Second index is number
-    /// Example: A2 -> cells[0][1]
+    /// Example: A2 -> cells[4][5]
     cells: [[Figure; 16]; 16],
 }
 

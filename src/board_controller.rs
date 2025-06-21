@@ -1,24 +1,23 @@
 use crate::board::ByteBoard;
-use crate::figure_list::{FigurePointerList, LinkedNodeCursor};
+use crate::figure_list::{FigurePointList, LinkedNodeCursor};
 use crate::movement::{MoveList, MoveGenerator, Move, MoveType};
-use crate::figure::{Color, W_INFINITY, Figure};
+use crate::figure::{Color, Figure};
 use crate::figure::Color::{WHITE, BLACK};
 use crate::point::Point;
 use crate::figure::Rank::{KING, QUEEN};
-use crate::score::*;
 use crate::movement::MoveType::SIMPLE;
 
 pub struct BoardDataHolder {
     // TODO remove pub for preventing board changes
     pub board: ByteBoard,
-    pub white_list: FigurePointerList,
-    pub black_list: FigurePointerList,
+    pub white_list: FigurePointList,
+    pub black_list: FigurePointList,
 }
 
 pub struct BoardController<'a> {
     pub(crate) board: &'a mut ByteBoard,
-    pub(crate) friend_list: &'a mut FigurePointerList,
-    pub(crate) enemy_list: &'a mut FigurePointerList,
+    pub(crate) friend_list: &'a mut FigurePointList,
+    pub(crate) enemy_list: &'a mut FigurePointList,
     pub(crate) friend_color: Color,
     pub(crate) enemy_color: Color,
     pub position_counter: i32
@@ -128,88 +127,6 @@ impl<'a> BoardController<'a> {
         std::mem::swap(&mut self.friend_color, &mut self.enemy_color);
     }
 
-    pub fn min_max_simple(&mut self, depth: i32) -> (i32, Option<Move>) {
-        if depth <= 0 {
-            self.position_counter += 1;
-            return (evaluate_score(self, |p, f| {
-                material_fn(p, f) + simple_positional_fn(p, f)
-            }), None);
-        }
-
-        // unsafe { println!("{:?}", (*friend_list.first).point); }
-        let move_list =
-            self.friend_movies();
-
-        // if let Some(king_eat_move) = self.find_king_eat_move(&move_list) {
-        //     return (W_INFINITY, Some(*king_eat_move));
-        // }
-            // MoveList::default();
-        // unsafe { println!("{:?}", (*friend_list.first).point); }
-
-        let mut best_score = - W_INFINITY;
-        let mut best_move: Option<Move> = move_list.iter().next().copied();
-        for movement in move_list.iter() {
-            let move_info = self.make_move(movement);
-
-            // println!("{}", self.board);
-            // println!();
-
-            self.pass_move_to_enemy();
-            let cur_score = - self.min_max_simple(depth - 1).0;
-            self.pass_move_to_enemy();
-
-            if cur_score > best_score {
-                best_score = cur_score;
-                best_move = Some(*movement);
-            }
-
-            self.unmake_move(move_info);
-        }
-
-        return (best_score, best_move);
-    }
-
-    pub fn alpha_betta(&mut self, depth: i32, mut alpha: i32, betta: i32) -> (i32, Option<Move>) {
-        if depth <= 0 {
-            self.position_counter += 1;
-            return (evaluate_score(self, |p, f| {
-                material_fn(p, f) + simple_positional_fn(p, f)
-            }), None);
-        }
-
-        let mut move_list = self.friend_movies();
-        move_list.sort_by(self.board, simple_positional_fn);
-
-        // if let Some(first_move) = move_list.iter().next() {
-        //     let f = self.board.point(first_move.to);
-        //     if f.rank() == KING && f.color() == self.enemy_color && first_move.m_type == SIMPLE {
-        //         return (W_INFINITY, Some(*first_move));
-        //     }
-        // }
-
-        let mut best_score = - W_INFINITY;
-        let mut best_move: Option<Move> = move_list.iter().next().copied();
-        for movement in move_list.iter() {
-            let move_info = self.make_move(movement);
-            self.pass_move_to_enemy();
-            let mut cur_score = - self.alpha_betta(depth - 1, - (alpha + 1), - alpha).0;
-            if cur_score > alpha && cur_score < betta {
-                cur_score = - self.alpha_betta(depth - 1, - betta, - alpha).0;
-            }
-            self.pass_move_to_enemy();
-            self.unmake_move(move_info);
-
-            if cur_score > best_score {
-                best_score = cur_score;
-                best_move = Some(*movement);
-            }
-            if best_score > alpha { alpha = best_score }
-            if alpha >= betta { return (alpha, best_move) }
-        }
-
-        return (best_score, best_move);
-    }
-
     pub fn is_king_alive(&self) -> bool {
         self.friend_list.iter().find(|p| {
             let f = self.board.point(*p);
@@ -231,8 +148,8 @@ impl BoardDataHolder {
     pub fn new(board: &ByteBoard) -> Self {
         BoardDataHolder {
             board: *board,
-            white_list: FigurePointerList::new(board, WHITE),
-            black_list: FigurePointerList::new(board, BLACK)
+            white_list: FigurePointList::new(board, WHITE),
+            black_list: FigurePointList::new(board, BLACK)
         }
     }
 
