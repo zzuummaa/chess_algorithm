@@ -29,7 +29,7 @@ impl MoveSource for ConsoleMoveSource {
 
         println!();
         loop {
-            print!("Write {:?} move (a1b2):", controller.friend_color());
+            print!("Write {:?} move (e.g. a1b2):", controller.friend_color());
             io::stdout().flush().unwrap();
 
             self.user_input.clear();

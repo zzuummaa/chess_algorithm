@@ -1,7 +1,6 @@
-#![feature(is_sorted)]
-
 extern crate chess_algorithm;
 
+use std::cmp::Ordering;
 use chess_algorithm::board::*;
 use chess_algorithm::figure::*;
 use chess_algorithm::figure_list::*;
@@ -16,7 +15,7 @@ fn test_fill_is_descending_sort() {
     assert!(list.iter().is_sorted_by(|a, b| {
         let pa = board.point(*a);
         let pb = board.point(*b);
-        Some(pb.weight().cmp(&pa.weight()))
+        pb.weight() <= pa.weight()
     }));
 }
 

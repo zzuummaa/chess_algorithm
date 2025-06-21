@@ -164,8 +164,8 @@ impl FigureArrayList {
             .enumerate()
             .for_each(|(i, p)| self.buffer[i] = PointArrayNode{ point: p, is_present: true });
 
-        heapsort(&mut self.buffer, |a, b| {
-            board.point(a.point).weight() > board.point(b.point).weight()
+        self.buffer.sort_by(|a, b| {
+            board.point(b.point).weight().cmp(&board.point(a.point).weight())
         });
     }
 
@@ -303,7 +303,7 @@ impl Default for FigureLinkedList {
 }
 
 pub struct FigurePointerList {
-    pub buffer: Box<[PointLinkedNode; 16]>,
+    pub nodes: Box<[PointLinkedNode; 16]>,
     pub first: *mut PointLinkedNode,
 }
 
@@ -318,7 +318,7 @@ impl FigurePointerList {
         let mut counter = 0;
         board.cell_iter().for_each(|(p, f)| {
             if f.color() == color {
-                self.buffer[counter].point = p;
+                self.nodes[counter].point = p;
                 counter += 1;
             }
         });
@@ -327,13 +327,13 @@ impl FigurePointerList {
             return;
         }
 
-        heapsort(&mut self.buffer[0..counter], |a, b| {
-            board.point(a.point).weight() > board.point(b.point).weight()
+        self.nodes.sort_by(|a, b| {
+            board.point(b.point).weight().cmp(&board.point(a.point).weight())
         });
         for i in 0..(counter - 1) {
-            self.buffer[i].next = &mut self.buffer[i+1]
+            self.nodes[i].next = &mut self.nodes[i+1]
         }
-        self.first = &mut self.buffer[0];
+        self.first = &mut self.nodes[0];
     }
 
     // pub fn make_move(&mut self, movement: &Move) -> LinkedNodeCursor {
@@ -401,7 +401,7 @@ impl FigurePointerList {
 
 impl Default for FigurePointerList {
     fn default() -> Self {
-        FigurePointerList { buffer: Box::new([PointLinkedNode::new(); 16]), first: ptr::null_mut() }
+        FigurePointerList { nodes: Box::new([PointLinkedNode::new(); 16]), first: ptr::null_mut() }
     }
 }
 
